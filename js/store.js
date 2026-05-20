@@ -327,6 +327,65 @@ const DaLanStore = {
         }
     ],
 
+    // Food & Drink Menu (Dạ Lan Digital Menu)
+    FOOD_MENU: [
+        { id: "FOOD-001", name: "Phở Đặc Biệt Dạ Lan", price: 65000, category: "Món chính", desc: "Phở bò truyền thống với nạm, gầu, gân, bò viên thượng hạng.", icon: "coffee" },
+        { id: "FOOD-002", name: "Lẩu Bò Thập Cẩm Dạ Lan", price: 350000, category: "Món chính", desc: "Lẩu bò nhúng giấm thơm nồng, nước lẩu ngọt thanh kèm rau nấm tươi.", icon: "zap" },
+        { id: "FOOD-003", name: "Chả Giò Dạ Lan Giòn Rụm", price: 85000, category: "Khai vị", desc: "Nhân thịt tôm cua đặc sản bánh tráng giòn rụm rán vàng.", icon: "award" },
+        { id: "FOOD-004", name: "Gỏi Ngó Sen Tôm Thịt", price: 120000, category: "Khai vị", desc: "Gỏi chua ngọt nhẹ nhàng, tôm thịt thơm ngọt ăn kèm bánh phồng tôm.", icon: "sun" },
+        { id: "FOOD-005", name: "Cơm Chiên Hải Sản Hoàng Kim", price: 145000, category: "Món chính", desc: "Cơm rang tơi xốp, hạt cơm bọc trứng muối thơm bùi đầy ắp hải sản.", icon: "database" },
+        { id: "FOOD-006", name: "Bò Né Bản Gang Dạ Lan", price: 180000, category: "Món chính", desc: "Thịt bò Mỹ nhập khẩu mềm thơm cháy cạnh trên chảo gang nóng hổi.", icon: "target" },
+        { id: "FOOD-007", name: "Cà Phê Sữa Đá Dạ Lan", price: 35000, category: "Đồ uống", desc: "Hạt cà phê Robusta Buôn Ma Thuột đậm đà, sữa đặc béo ngậy.", icon: "coffee" },
+        { id: "FOOD-008", name: "Trà Sen Vàng Trân Châu", price: 45000, category: "Đồ uống", desc: "Trà oolong thanh mát, củ sen giòn sần sật bùi ngọt, trân châu hạt sen.", icon: "sunset" },
+        { id: "FOOD-009", name: "Sinh Tố Dâu Đà Lạt", price: 55000, category: "Đồ uống", desc: "Dâu tây tươi Đà Lạt xay nhuyễn mát lạnh chua ngọt tự nhiên.", icon: "smile" },
+        { id: "FOOD-010", name: "Chè Hạt Sen Nhãn Nhục", price: 40000, category: "Tráng miệng", desc: "Món tráng miệng thanh mát ngọt thanh, hạt sen ninh nhừ nhãn lồng giòn thơm.", icon: "moon" },
+        { id: "FOOD-011", name: "Bánh Flan Caramel Macchiato", price: 30000, category: "Tráng miệng", desc: "Bánh flan béo ngậy mịn màng phủ xốt caramel cà phê thơm nồng.", icon: "heart" }
+    ],
+
+    // Default Customer Orders
+    MOCK_ORDERS: [
+        {
+            id: "ORD-001",
+            table: "Bàn số 03",
+            unit: "Dạ Lan Center",
+            items: [
+                { itemId: "FOOD-001", name: "Phở Đặc Biệt Dạ Lan", price: 65000, quantity: 2, notes: "1 tô không hành lá" },
+                { itemId: "FOOD-007", name: "Cà Phê Sữa Đá Dạ Lan", price: 35000, quantity: 2, notes: "ít sữa" }
+            ],
+            totalAmount: 200000,
+            status: "pending",
+            timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
+            notes: "Khách gọi thêm ly nước lọc"
+        },
+        {
+            id: "ORD-002",
+            table: "Bàn số 12",
+            unit: "Dạ Lan Star",
+            items: [
+                { itemId: "FOOD-002", name: "Lẩu Bò Thập Cẩm Dạ Lan", price: 350000, quantity: 1, notes: "" },
+                { itemId: "FOOD-003", name: "Chả Giò Dạ Lan Giòn Rụm", price: 85000, quantity: 1, notes: "" },
+                { itemId: "FOOD-008", name: "Trà Sen Vàng Trân Châu", price: 45000, quantity: 3, notes: "2 ly ít đường" }
+            ],
+            totalAmount: 570000,
+            status: "preparing",
+            timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+            notes: "Phục vụ nhanh giùm"
+        },
+        {
+            id: "ORD-003",
+            table: "Bàn số 05",
+            unit: "Dạ Lan Center",
+            items: [
+                { itemId: "FOOD-005", name: "Cơm Chiên Hải Sản Hoàng Kim", price: 145000, quantity: 1, notes: "" },
+                { itemId: "FOOD-010", name: "Chè Hạt Sen Nhãn Nhục", price: 40000, quantity: 1, notes: "" }
+            ],
+            totalAmount: 185000,
+            status: "completed",
+            timestamp: new Date(Date.now() - 120 * 60 * 1000).toISOString(),
+            notes: ""
+        }
+    ],
+
     // Default Professional F&B Transactions for May 2026
     MOCK_TRANSACTIONS: [
         {
@@ -484,6 +543,11 @@ const DaLanStore = {
         if (!storedTx) {
             this.resetTransactionsToMockData();
         }
+
+        const storedOrders = localStorage.getItem("dalan_orders");
+        if (!storedOrders) {
+            this.resetOrdersToMockData();
+        }
     },
 
     getEmployees() {
@@ -575,6 +639,71 @@ const DaLanStore = {
 
     resetTransactionsToMockData() {
         this.saveTransactions(this.MOCK_TRANSACTIONS);
+    },
+
+    // --- Orders Store Functions ---
+    getOrders() {
+        const stored = localStorage.getItem("dalan_orders");
+        if (!stored) {
+            this.resetOrdersToMockData();
+            return this.MOCK_ORDERS;
+        }
+        return JSON.parse(stored);
+    },
+
+    saveOrders(orders) {
+        localStorage.setItem("dalan_orders", JSON.stringify(orders));
+    },
+
+    addOrder(order) {
+        const orders = this.getOrders();
+        orders.unshift(order); // Add new orders to the beginning
+        this.saveOrders(orders);
+        return true;
+    },
+
+    deleteOrder(id) {
+        const orders = this.getOrders();
+        const filtered = orders.filter(o => o.id !== id);
+        if (filtered.length !== orders.length) {
+            this.saveOrders(filtered);
+            return true;
+        }
+        return false;
+    },
+
+    updateOrderStatus(orderId, status) {
+        const orders = this.getOrders();
+        const index = orders.findIndex(o => o.id === orderId);
+        if (index !== -1) {
+            const oldStatus = orders[index].status;
+            orders[index].status = status;
+            this.saveOrders(orders);
+
+            // If transitioned to 'completed' and was not completed before, generate a transaction!
+            if (status === 'completed' && oldStatus !== 'completed') {
+                const order = orders[index];
+                const orderNum = order.id.split('-')[1] || Math.floor(100 + Math.random() * 900);
+                const txId = `TX-ORD-${orderNum}`;
+                const tx = {
+                    id: txId,
+                    title: `Doanh thu đặt món - ${order.id} (${order.table})`,
+                    amount: order.totalAmount,
+                    type: "income",
+                    category: "Doanh thu",
+                    department: order.unit,
+                    date: new Date().toISOString().substring(0, 10),
+                    notes: `Đơn đặt món của khách hoàn thành tự động. Ghi chú: ${order.notes || 'Không có'}`
+                };
+                this.addTransaction(tx);
+            }
+            return true;
+        }
+        return false;
+    },
+
+    resetOrdersToMockData() {
+        this.saveOrders(this.MOCK_ORDERS);
     },
 
     // --- Utility: Generate Gradient Initials Avatar ---
@@ -732,7 +861,8 @@ const DaLanStore = {
     exportData() {
         const backup = {
             employees: this.getEmployees(),
-            transactions: this.getTransactions()
+            transactions: this.getTransactions(),
+            orders: this.getOrders()
         };
         const dataStr = JSON.stringify(backup, null, 2);
         return "data:text/json;charset=utf-8," + encodeURIComponent(dataStr);
@@ -749,6 +879,9 @@ const DaLanStore = {
                 this.saveEmployees(parsed.employees);
                 if (parsed.transactions && Array.isArray(parsed.transactions)) {
                     this.saveTransactions(parsed.transactions);
+                }
+                if (parsed.orders && Array.isArray(parsed.orders)) {
+                    this.saveOrders(parsed.orders);
                 }
                 return { success: true, count: parsed.employees.length };
             } else if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].id) {

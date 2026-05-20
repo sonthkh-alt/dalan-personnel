@@ -1515,3 +1515,81 @@ body.dark-theme .ios-toast {
     width: 16px;
     height: 16px;
 }
+
+/* --- PHÂN HỆ HỆ THỐNG ĐẶT MÓN ĂN CHO KHÁCH HÀNG & BẾP --- */
+
+/* Food Card hover effect & responsive design */
+.food-item-card {
+    transition: transform 0.2s cubic-bezier(0.1, 0.76, 0.55, 0.94), box-shadow 0.2s ease;
+}
+.food-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+}
+.add-to-cart-btn {
+    transition: transform 0.1s ease, background-color 0.2s ease;
+}
+.add-to-cart-btn:active {
+    transform: scale(0.95);
+}
+
+/* Floating Cart Bar slide up & shake */
+@keyframes slideUp {
+    from {
+        transform: translateY(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+@keyframes pulseGlow {
+    0% {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+    50% {
+        box-shadow: 0 10px 25px rgba(211, 47, 47, 0.25);
+    }
+    100% {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+}
+.floating-cart-bar {
+    animation: slideUp 0.4s cubic-bezier(0.1, 0.76, 0.55, 0.94) forwards, pulseGlow 3s infinite ease-in-out;
+}
+
+/* Order Queue Cards in Staff Queue */
+.order-queue-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.order-queue-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.06) !important;
+}
+
+/* Segment controls horizontal scroll style */
+#menu-category-segment::-webkit-scrollbar {
+    display: none;
+}
+#menu-category-segment {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+/* Progressive Order Tracker step animations */
+.order-tracker-card {
+    animation: slideUp 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94);
+}
+
+/* Customer Mode Responsive Layout Toggles */
+body.customer-active .ios-large-title-container,
+body.customer-active .ios-tab-bar {
+    display: none !important;
+}
+body.customer-active .ios-header {
+    height: calc(44px + env(safe-area-inset-top, 0)) !important;
+}
+body.customer-active .ios-content {
+    padding-bottom: calc(100px + var(--safe-bottom)) !important; /* Leave room for floating cart */
+}

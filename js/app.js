@@ -13,6 +13,16 @@ const App = {
     activeTxFilterType: "Tất cả",
     activeEditTransactionId: null,
 
+    // --- Cart & Customer Ordering State ---
+    isCustomerMode: false,
+    cart: {},
+    customerUnit: "Dạ Lan Center",
+    customerTable: "Bàn 01",
+    activeMenuCategory: "Tất cả",
+    activeMenuSearchQuery: "",
+    queueStatusFilter: "Tất cả",
+    queueUnitFilter: "Tất cả",
+
     // --- Bootstrapping App ---
     init() {
         // Set dynamic date in header
@@ -74,6 +84,34 @@ const App = {
         if (txOverlay) {
             txOverlay.addEventListener("click", (e) => {
                 if (e.target === txOverlay) this.closeTransactionForm();
+            });
+        }
+
+        // Bind cart sheet close button
+        const closeCartBtn = document.getElementById("close-cart-btn");
+        if (closeCartBtn) {
+            closeCartBtn.addEventListener("click", () => this.closeCart());
+        }
+
+        // Bind cart sheet overlay tap to dismiss
+        const cartOverlay = document.getElementById("cart-overlay");
+        if (cartOverlay) {
+            cartOverlay.addEventListener("click", (e) => {
+                if (e.target === cartOverlay) this.closeCart();
+            });
+        }
+
+        // Bind order queue modal close button
+        const closeQueueBtn = document.getElementById("close-order-queue-btn");
+        if (closeQueueBtn) {
+            closeQueueBtn.addEventListener("click", () => this.closeOrderQueueModal());
+        }
+
+        // Bind order queue overlay tap to dismiss
+        const queueOverlay = document.getElementById("order-queue-overlay");
+        if (queueOverlay) {
+            queueOverlay.addEventListener("click", (e) => {
+                if (e.target === queueOverlay) this.closeOrderQueueModal();
             });
         }
 
@@ -183,6 +221,11 @@ const App = {
     renderCurrentView() {
         const mainContent = document.getElementById("main-content");
         if (!mainContent) return;
+
+        if (this.isCustomerMode) {
+            DaLanComponents.renderCustomerOrderPortal(mainContent, this.activeMenuCategory, this.activeMenuSearchQuery);
+            return;
+        }
 
         switch (this.currentTab) {
             case "dashboard":
@@ -593,6 +636,319 @@ const App = {
         link.click();
         document.body.removeChild(link);
         this.showToast("Đã xuất tệp sao lưu JSON thành công!", "success");
+    },
+
+    // ==========================================
+    // PHÂN HỆ HỆ THỐNG ĐẶT MÓN ĂN & XỬ LÝ ĐƠN HÀNG (F&B)
+    // ==========================================
+    enterCustomerMode() {
+        this.isCustomerMode = true;
+        this.cart = {}; // Clear cart
+        this.activeMenuCategory = "Tất cả";
+        this.activeMenuSearchQuery = "";
+        
+        document.body.classList.add("customer-active");
+        
+        const largeTitleContainer = document.querySelector(".ios-large-title-container");
+        if (largeTitleContainer) largeTitleContainer.style.display = "none";
+        
+        const tabTitle = document.getElementById("tab-title");
+        if (tabTitle) tabTitle.textContent = "Đặt món";
+
+        const navBarTitle = document.querySelector(".ios-nav-bar-title");
+        if (navBarTitle) navBarTitle.textContent = "Dạ Lan Menu";
+        
+        const headerAction = document.getElementById("header-action-container");
+        if (headerAction) headerAction.innerHTML = "";
+
+        this.renderCurrentView();
+        this.showToast("Chào mừng đến với Dạ Lan F&B Digital Menu!", "success");
+    },
+
+    exitCustomerMode() {
+        this.isCustomerMode = false;
+        document.body.classList.remove("customer-active");
+        
+        const largeTitleContainer = document.querySelector(".ios-large-title-container");
+        if (largeTitleContainer) largeTitleContainer.style.display = "block";
+        
+        this.switchTab("dashboard");
+        this.showToast("Quay lại màn hình quản lý thành công!", "success");
+    },
+
+    setCustomerUnit(unit) {
+        this.customerUnit = unit;
+        this.renderCurrentView();
+    },
+
+    setCustomerTable(table) {
+        this.customerTable = table;
+        this.renderCurrentView();
+    },
+
+    addToCart(itemId) {
+        if (!this.cart[itemId]) {
+            this.cart[itemId] = 1;
+        } else {
+            this.cart[itemId]++;
+        }
+        
+        this.showToast("Đã thêm vào giỏ hàng!", "success");
+        this.renderCurrentView();
+    },
+
+    updateCartQty(itemId, change) {
+        if (!this.cart[itemId]) return;
+        this.cart[itemId] += change;
+        if (this.cart[itemId] <= 0) {
+            delete this.cart[itemId];
+        }
+        this.renderCurrentView();
+    },
+
+    getCartTotalQuantity() {
+        let total = 0;
+        Object.values(this.cart).forEach(qty => {
+            total += qty;
+        });
+        return total;
+    },
+
+    getCartTotalPrice() {
+        let total = 0;
+        Object.keys(this.cart).forEach(itemId => {
+            const item = DaLanStore.FOOD_MENU.find(m => m.id === itemId);
+            if (item) {
+                total += item.price * this.cart[itemId];
+            }
+        });
+        return total;
+    },
+
+    openCartSummary() {
+        const body = document.getElementById("cart-modal-body");
+        const overlay = document.getElementById("cart-overlay");
+        if (!body || !overlay) return;
+
+        const cartItems = Object.keys(this.cart).filter(id => this.cart[id] > 0);
+        if (cartItems.length === 0) {
+            this.showToast("Giỏ hàng của bạn đang trống!", "error");
+            return;
+        }
+
+        let html = `
+            <div style="display:flex; flex-direction:column; gap:16px;">
+                <div style="font-size:13px; color:var(--text-secondary); border-bottom:1px solid var(--border-color); padding-bottom:8px;">
+                    <strong>Vị trí phục vụ:</strong> ${this.customerTable} • ${this.customerUnit}
+                </div>
+                
+                <!-- Items List -->
+                <div style="display:flex; flex-direction:column; gap:12px; max-height:280px; overflow-y:auto; padding-right:4px;">
+        `;
+
+        let totalPrice = 0;
+        cartItems.forEach(itemId => {
+            const item = DaLanStore.FOOD_MENU.find(m => m.id === itemId);
+            if (!item) return;
+            const qty = this.cart[itemId];
+            const itemTotal = item.price * qty;
+            totalPrice += itemTotal;
+
+            html += `
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed var(--border-color); padding-bottom:8px;">
+                    <div style="flex:1; min-width:0;">
+                        <h4 style="font-family:'Outfit', sans-serif; font-size:14px; font-weight:700; margin:0; color:var(--text-primary);">${item.name}</h4>
+                        <span style="font-size:12px; color:var(--ios-red); font-weight:700;">${DaLanComponents.formatVND(item.price).replace('₫', 'đ')} x ${qty}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:14px; font-weight:700; color:var(--text-primary); margin-right:8px;">${DaLanComponents.formatVND(itemTotal).replace('₫', 'đ')}</span>
+                        <div class="qty-counter" style="display:flex; align-items:center; background-color:var(--bg-secondary); border-radius:20px; border:1px solid var(--border-color); padding:2px;">
+                            <button onclick="App.updateCartQty('${item.id}', -1); App.openCartSummary();" style="width:20px; height:20px; border-radius:50%; border:none; background:white; color:var(--text-primary); font-weight:800; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 2px rgba(0,0,0,0.1);">-</button>
+                            <span style="font-size:11px; font-weight:700; color:var(--text-primary); min-width:18px; text-align:center;">${qty}</span>
+                            <button onclick="App.updateCartQty('${item.id}', 1); App.openCartSummary();" style="width:20px; height:20px; border-radius:50%; border:none; background:var(--ios-red); color:white; font-weight:800; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 2px rgba(211,47,47,0.2);">+</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+                
+                <!-- General Order Note -->
+                <div>
+                    <label style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:6px;">Lời nhắn hoặc ghi chú cho nhà bếp</label>
+                    <textarea id="order-general-notes" rows="2" placeholder="VD: ít cay, nhiều hành, nước đá riêng..." style="width:100%; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px; padding:10px; font-size:13px; color:var(--text-primary); outline:none; font-family:inherit; resize:none;"></textarea>
+                </div>
+                
+                <!-- Summary price & checkout -->
+                <div style="border-top:1px solid var(--border-color); padding-top:14px; margin-top:4px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                        <span style="font-weight:600; color:var(--text-secondary); font-size:14px;">Tổng cộng (tạm tính):</span>
+                        <span style="font-family:'Outfit', sans-serif; font-size:20px; font-weight:800; color:var(--ios-red);">${DaLanComponents.formatVND(totalPrice).replace('₫', 'đ')}</span>
+                    </div>
+                    
+                    <button class="ios-btn ios-btn-primary" onclick="App.submitCustomerOrder()" style="width:100%; padding:14px; font-size:15px; font-weight:700; background-color:var(--ios-red) !important; color:white; border-radius:12px; display:flex; justify-content:center; align-items:center; gap:8px; cursor:pointer; box-shadow:0 4px 15px rgba(211,47,47,0.3);">
+                        <i data-feather="send" style="width:18px;"></i> Gửi Đơn Hàng Ngay
+                    </button>
+                </div>
+            </div>
+        `;
+
+        body.innerHTML = html;
+        feather.replace();
+        overlay.classList.add("active");
+    },
+
+    closeCart() {
+        const overlay = document.getElementById("cart-overlay");
+        if (overlay) {
+            overlay.classList.remove("active");
+        }
+    },
+
+    submitCustomerOrder() {
+        const noteEl = document.getElementById("order-general-notes");
+        const notes = noteEl ? noteEl.value.trim() : "";
+
+        const cartItems = Object.keys(this.cart).filter(id => this.cart[id] > 0);
+        if (cartItems.length === 0) {
+            this.showToast("Giỏ hàng đang trống!", "error");
+            return;
+        }
+
+        const items = cartItems.map(itemId => {
+            const item = DaLanStore.FOOD_MENU.find(m => m.id === itemId);
+            return {
+                id: itemId,
+                name: item.name,
+                price: item.price,
+                quantity: this.cart[itemId]
+            };
+        });
+
+        const totalAmount = this.getCartTotalPrice();
+        const orderNum = Math.floor(1000 + Math.random() * 9000);
+        const orderId = `ORD-${orderNum}`;
+
+        const newOrder = {
+            id: orderId,
+            unit: this.customerUnit,
+            table: this.customerTable,
+            items: items,
+            totalAmount: totalAmount,
+            status: "pending",
+            timestamp: new Date().toISOString(),
+            notes: notes
+        };
+
+        const success = DaLanStore.addOrder(newOrder);
+        if (success) {
+            this.cart = {}; // Empty cart
+            this.closeCart(); // Close bottom sheet
+            this.renderCurrentView();
+            this.showToast("Đã đặt món thành công! Bếp đang chuẩn bị.", "success");
+        } else {
+            this.showToast("Đặt món thất bại, vui lòng thử lại!", "error");
+        }
+    },
+
+    bindCustomerMenuEvents() {
+        const searchInput = document.getElementById("menu-search-input");
+        if (searchInput) {
+            searchInput.addEventListener("input", (e) => {
+                this.activeMenuSearchQuery = e.target.value;
+                this.renderCurrentView();
+                const newSearchInput = document.getElementById("menu-search-input");
+                if (newSearchInput) {
+                    newSearchInput.focus();
+                    newSearchInput.setSelectionRange(newSearchInput.value.length, newSearchInput.value.length);
+                }
+            });
+        }
+
+        const clearBtn = document.getElementById("menu-search-clear-btn");
+        if (clearBtn) {
+            clearBtn.addEventListener("click", () => {
+                this.activeMenuSearchQuery = "";
+                this.renderCurrentView();
+            });
+        }
+
+        const segmentContainer = document.getElementById("menu-category-segment");
+        if (segmentContainer) {
+            const buttons = segmentContainer.querySelectorAll(".segment-btn");
+            buttons.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    this.activeMenuCategory = btn.getAttribute("data-val");
+                    this.renderCurrentView();
+                });
+            });
+        }
+    },
+
+    openOrderQueueModal() {
+        const overlay = document.getElementById("order-queue-overlay");
+        const body = document.getElementById("order-queue-modal-body");
+        if (overlay && body) {
+            DaLanComponents.renderOrderQueue(body, this.queueStatusFilter, this.queueUnitFilter);
+            overlay.classList.add("active");
+        }
+    },
+
+    closeOrderQueueModal() {
+        const overlay = document.getElementById("order-queue-overlay");
+        if (overlay) {
+            overlay.classList.remove("active");
+        }
+    },
+
+    refreshOrderQueue() {
+        const body = document.getElementById("order-queue-modal-body");
+        if (body) {
+            DaLanComponents.renderOrderQueue(body, this.queueStatusFilter, this.queueUnitFilter);
+        }
+    },
+
+    setQueueFilters() {
+        const unitSel = document.getElementById("queue-unit-filter");
+        const statusSel = document.getElementById("queue-status-filter");
+        
+        if (unitSel) this.queueUnitFilter = unitSel.value;
+        if (statusSel) this.queueStatusFilter = statusSel.value;
+        
+        this.refreshOrderQueue();
+    },
+
+    changeOrderStatus(orderId, status) {
+        const success = DaLanStore.updateOrderStatus(orderId, status);
+        if (success) {
+            let msg = "Đã cập nhật trạng thái đơn hàng!";
+            if (status === "preparing") msg = "Đơn hàng bắt đầu chế biến!";
+            else if (status === "completed") msg = "Đơn hàng hoàn tất & Đã tạo giao dịch doanh thu!";
+            else if (status === "cancelled") msg = "Đã hủy đơn hàng thành công!";
+            
+            this.showToast(msg, "success");
+            this.refreshOrderQueue();
+            
+            if (this.currentTab === "dashboard") {
+                this.renderCurrentView();
+            }
+        } else {
+            this.showToast("Cập nhật trạng thái thất bại!", "error");
+        }
+    },
+
+    deleteOrderLog(orderId) {
+        if (confirm(`Bạn có chắc chắn muốn xóa vĩnh viễn lịch sử đơn hàng ${orderId} này không?`)) {
+            const success = DaLanStore.deleteOrder(orderId);
+            if (success) {
+                this.showToast("Đã xóa lịch sử đơn hàng!", "success");
+                this.refreshOrderQueue();
+            } else {
+                this.showToast("Xóa đơn hàng thất bại!", "error");
+            }
+        }
     },
 
     // ==========================================

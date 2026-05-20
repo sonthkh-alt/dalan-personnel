@@ -120,6 +120,34 @@
         </div>
     </div>
 
+    <!-- Slide-up Bottom Sheet (Customer Cart Summary) -->
+    <div class="ios-bottom-sheet-overlay" id="cart-overlay">
+        <div class="ios-bottom-sheet" id="cart-sheet">
+            <div class="sheet-drag-handle"></div>
+            <div class="sheet-header">
+                <h3 style="font-family:'Outfit', sans-serif; font-size:18px; font-weight:700; color:var(--text-primary); margin:0;">Giỏ Hàng Dạ Lan</h3>
+                <button class="sheet-close-btn" id="close-cart-btn"><i data-feather="x"></i></button>
+            </div>
+            <div class="sheet-body" id="cart-modal-body" style="padding: 16px 20px;">
+                <!-- Cart items and checkout form will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Full-screen Slide-up Modal (Staff Order Queue Panel) -->
+    <div class="ios-modal-overlay" id="order-queue-overlay">
+        <div class="ios-modal" id="order-queue-modal">
+            <header class="ios-modal-header">
+                <button class="modal-nav-btn cancel-btn" id="close-order-queue-btn">Đóng</button>
+                <h2 class="modal-title">Bếp & Hạch toán Đơn hàng</h2>
+                <button class="modal-nav-btn save-btn" onclick="App.refreshOrderQueue()" style="display:flex; align-items:center;"><i data-feather="rotate-cw" style="width:18px; color:var(--ios-red);"></i></button>
+            </header>
+            <div class="ios-modal-body" id="order-queue-modal-body" style="background-color: var(--bg-primary);">
+                <!-- Active order queue cards will be injected here -->
+            </div>
+        </div>
+    </div>
+
     <!-- Dynamic Toast Notification Container -->
     <div class="ios-toast-container" id="toast-container"></div>
 
