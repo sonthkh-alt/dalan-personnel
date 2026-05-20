@@ -707,22 +707,14 @@ const App = {
     },
 
     getCartTotalQuantity() {
-        let total = 0;
-        Object.values(this.cart).forEach(qty => {
-            total += qty;
-        });
-        return total;
+        return Object.values(this.cart).reduce((a, b) => a + b, 0);
     },
 
     getCartTotalPrice() {
-        let total = 0;
-        Object.keys(this.cart).forEach(itemId => {
-            const item = DaLanStore.FOOD_MENU.find(m => m.id === itemId);
-            if (item) {
-                total += item.price * this.cart[itemId];
-            }
-        });
-        return total;
+        return Object.keys(this.cart).reduce((total, id) => {
+            const item = DaLanStore.FOOD_MENU.find(m => m.id === id);
+            return total + (item ? item.price * this.cart[id] : 0);
+        }, 0);
     },
 
     openCartSummary() {
@@ -736,66 +728,60 @@ const App = {
             return;
         }
 
-        let html = `
-            <div style="display:flex; flex-direction:column; gap:16px;">
-                <div style="font-size:13px; color:var(--text-secondary); border-bottom:1px solid var(--border-color); padding-bottom:8px;">
-                    <strong>Vị trí phục vụ:</strong> ${this.customerTable} • ${this.customerUnit}
-                </div>
-                
-                <!-- Items List -->
-                <div style="display:flex; flex-direction:column; gap:12px; max-height:280px; overflow-y:auto; padding-right:4px;">
-        `;
-
+        const catEmoji = { 'Khai vị': '🥗', 'Món chính': '🍲', 'Đồ uống': '🥤', 'Tráng miệng': '🍮' };
+        let itemsHtml = '';
         let totalPrice = 0;
+
         cartItems.forEach(itemId => {
             const item = DaLanStore.FOOD_MENU.find(m => m.id === itemId);
             if (!item) return;
             const qty = this.cart[itemId];
             const itemTotal = item.price * qty;
             totalPrice += itemTotal;
-
-            html += `
-                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px dashed var(--border-color); padding-bottom:8px;">
-                    <div style="flex:1; min-width:0;">
-                        <h4 style="font-family:'Outfit', sans-serif; font-size:14px; font-weight:700; margin:0; color:var(--text-primary);">${item.name}</h4>
-                        <span style="font-size:12px; color:var(--ios-red); font-weight:700;">${DaLanComponents.formatVND(item.price).replace('₫', 'đ')} x ${qty}</span>
+            const em = catEmoji[item.category] || '🍽️';
+            itemsHtml += `
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border-color);">
+                    <div style="width:40px;height:40px;border-radius:10px;background:var(--brand-red-ghost);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${em}</div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.name}</div>
+                        <div style="font-size:12px;color:var(--brand-red);font-weight:600;margin-top:1px;">${DaLanComponents.formatVND(item.price).replace('₫','d')}</div>
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
-                        <span style="font-size:14px; font-weight:700; color:var(--text-primary); margin-right:8px;">${DaLanComponents.formatVND(itemTotal).replace('₫', 'đ')}</span>
-                        <div class="qty-counter" style="display:flex; align-items:center; background-color:var(--bg-secondary); border-radius:20px; border:1px solid var(--border-color); padding:2px;">
-                            <button onclick="App.updateCartQty('${item.id}', -1); App.openCartSummary();" style="width:20px; height:20px; border-radius:50%; border:none; background:white; color:var(--text-primary); font-weight:800; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 2px rgba(0,0,0,0.1);">-</button>
-                            <span style="font-size:11px; font-weight:700; color:var(--text-primary); min-width:18px; text-align:center;">${qty}</span>
-                            <button onclick="App.updateCartQty('${item.id}', 1); App.openCartSummary();" style="width:20px; height:20px; border-radius:50%; border:none; background:var(--ios-red); color:white; font-weight:800; font-size:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 2px rgba(211,47,47,0.2);">+</button>
-                        </div>
+                    <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+                        <button onclick="App.updateCartQty('${item.id}',-1);App.openCartSummary();" style="width:26px;height:26px;border-radius:8px;border:none;background:var(--bg-tertiary);color:var(--text-primary);font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+                        <span style="font-size:14px;font-weight:800;color:var(--text-primary);font-family:'Outfit',sans-serif;min-width:20px;text-align:center;">${qty}</span>
+                        <button onclick="App.updateCartQty('${item.id}',1);App.openCartSummary();" style="width:26px;height:26px;border-radius:8px;border:none;background:var(--brand-red);color:white;font-weight:800;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>
                     </div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text-primary);font-family:'Outfit',sans-serif;min-width:68px;text-align:right;">${DaLanComponents.formatVND(itemTotal).replace('₫','d')}</div>
                 </div>
             `;
         });
 
-        html += `
+        body.innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:14px;">
+                <div style="display:flex;align-items:center;gap:8px;background:var(--brand-red-ghost);border:1px solid var(--brand-red-light);border-radius:10px;padding:10px 12px;">
+                    <i data-feather="map-pin" style="width:15px;height:15px;color:var(--brand-red);flex-shrink:0;"></i>
+                    <span style="font-size:13px;font-weight:600;color:var(--brand-red);">${this.customerTable} • ${this.customerUnit}</span>
                 </div>
-                
-                <!-- General Order Note -->
+                <div style="overflow-y:auto;max-height:240px;">${itemsHtml}</div>
                 <div>
-                    <label style="font-size:11px; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:6px;">Lời nhắn hoặc ghi chú cho nhà bếp</label>
-                    <textarea id="order-general-notes" rows="2" placeholder="VD: ít cay, nhiều hành, nước đá riêng..." style="width:100%; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:10px; padding:10px; font-size:13px; color:var(--text-primary); outline:none; font-family:inherit; resize:none;"></textarea>
-                </div>
-                
-                <!-- Summary price & checkout -->
-                <div style="border-top:1px solid var(--border-color); padding-top:14px; margin-top:4px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-                        <span style="font-weight:600; color:var(--text-secondary); font-size:14px;">Tổng cộng (tạm tính):</span>
-                        <span style="font-family:'Outfit', sans-serif; font-size:20px; font-weight:800; color:var(--ios-red);">${DaLanComponents.formatVND(totalPrice).replace('₫', 'đ')}</span>
+                    <label style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Lời nhắn cho Bếp</label>
+                    <div style="display:flex;align-items:flex-start;gap:8px;background:var(--bg-tertiary);border-radius:12px;padding:10px 12px;border:0.5px solid var(--border-color);">
+                        <i data-feather="message-circle" style="width:15px;height:15px;color:var(--text-secondary);margin-top:2px;flex-shrink:0;"></i>
+                        <textarea id="order-general-notes" rows="2" placeholder="VD: ít cay, không hành, nước đá riêng..." style="flex:1;background:none;border:none;outline:none;font-size:13px;color:var(--text-primary);font-family:inherit;resize:none;line-height:1.5;"></textarea>
                     </div>
-                    
-                    <button class="ios-btn ios-btn-primary" onclick="App.submitCustomerOrder()" style="width:100%; padding:14px; font-size:15px; font-weight:700; background-color:var(--ios-red) !important; color:white; border-radius:12px; display:flex; justify-content:center; align-items:center; gap:8px; cursor:pointer; box-shadow:0 4px 15px rgba(211,47,47,0.3);">
+                </div>
+                <div style="background:var(--bg-secondary);border:0.5px solid var(--border-color);border-radius:14px;padding:14px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                        <span style="font-size:14px;font-weight:500;color:var(--text-secondary);">Tổng tạm tính</span>
+                        <span style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:900;color:var(--brand-red);">${DaLanComponents.formatVND(totalPrice).replace('₫','d')}</span>
+                    </div>
+                    <button onclick="App.submitCustomerOrder()" style="width:100%;padding:14px;font-size:15px;font-weight:800;font-family:'Outfit',sans-serif;background:linear-gradient(135deg,var(--brand-red),var(--brand-red-mid));color:white;border:none;border-radius:14px;display:flex;justify-content:center;align-items:center;gap:10px;cursor:pointer;box-shadow:0 6px 20px rgba(198,40,40,0.3);">
                         <i data-feather="send" style="width:18px;"></i> Gửi Đơn Hàng Ngay
                     </button>
                 </div>
             </div>
         `;
 
-        body.innerHTML = html;
         feather.replace();
         overlay.classList.add("active");
     },

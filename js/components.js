@@ -24,115 +24,128 @@ const DaLanComponents = {
         const stats = DaLanStore.getStats();
         const activePercentage = stats.total > 0 ? Math.round((stats.status.working / stats.total) * 100) : 0;
         const insuredPercentage = stats.total > 0 ? Math.round((stats.insurance.insured / stats.total) * 100) : 0;
-        
+        const today = new Date().toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });
+        const activeOrders = DaLanStore.getOrders().filter(o => o.status === 'pending' || o.status === 'preparing');
+
+        // Department progress data
+        const deptColors = {
+            'Văn phòng':      { bar: '#D32F2F', label: 'red'    },
+            'Dạ Lan Center':  { bar: '#B71C1C', label: 'crimson' },
+            'Dạ Lan Star':    { bar: '#FF9500', label: 'orange' },
+            'Dạ Lan Event':   { bar: '#007AFF', label: 'blue'   },
+            'Nhà máy Dạ Lan': { bar: '#34C759', label: 'green'  }
+        };
+
         let html = `
-            <!-- Welcome Accent Card -->
-            <div class="ios-card accent-card">
+            <!-- Executive Header Accent Card -->
+            <div class="ios-card accent-card" style="animation: fadeInUp 0.4s ease;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <h2 style="font-family: 'Outfit', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 4px;">Công ty CP Dạ Lan</h2>
-                        <p style="font-size: 13px; opacity: 0.9;">Hệ thống Quản lý Nhân sự Di động Chuyên nghiệp</p>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--brand-gold, #F9A825) 0%, #FFD54F 100%); display: flex; align-items: center; justify-content: center; font-family: 'Outfit', sans-serif; font-weight: 900; font-size: 18px; color: #7B3F00; flex-shrink: 0; box-shadow: 0 3px 10px rgba(249,168,37,0.4);">DL</div>
+                        <div>
+                            <h2 style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 800; margin-bottom: 2px;">Công ty CP Dạ Lan</h2>
+                            <p style="font-size: 11px; opacity: 0.85;">GĐ: Nguyễn Thị Hồng Liên</p>
+                        </div>
                     </div>
-                    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='white'><path d='M50 15c-5 0-15 15-15 30 0 10 5 15 15 15s15-5 15-30c0-15-10-30-15-30zm-25 55c0-10 8-15 25-15s25 5 25 15c0 10-5 25-25 25S25 80 25 70z'/></svg>" style="width: 40px; height: 40px; opacity: 0.9;">
+                    <div style="text-align:right; font-size:10px; opacity:0.8; line-height:1.5;">${today}</div>
                 </div>
             </div>
 
-            <!-- Stats Grid -->
-            <div class="stats-grid">
-                <div class="ios-card stat-item">
+            <!-- 4 KPI Stats Grid -->
+            <div class="stats-grid" style="animation: fadeInUp 0.4s ease;">
+                <div class="stat-item red">
+                    <div class="stat-icon-wrap red"><i data-feather="users" style="width:18px;"></i></div>
                     <span class="stat-label">Tổng nhân sự</span>
                     <span class="stat-value">${stats.total}</span>
-                    <div class="stat-icon"><i data-feather="users"></i></div>
+                    <span class="stat-sub">toàn hệ thống</span>
                 </div>
-                <div class="ios-card stat-item">
+                <div class="stat-item green">
+                    <div class="stat-icon-wrap green"><i data-feather="activity" style="width:18px;"></i></div>
                     <span class="stat-label">Đang làm việc</span>
-                    <span class="stat-value">${stats.status.working} <span style="font-size: 13px; color: var(--ios-green); font-weight: 500;">(${activePercentage}%)</span></span>
-                    <div class="stat-icon"><i data-feather="activity"></i></div>
+                    <span class="stat-value">${stats.status.working}</span>
+                    <span class="stat-sub">${activePercentage}% hoạt động</span>
                 </div>
-                <div class="ios-card stat-item">
+                <div class="stat-item gold">
+                    <div class="stat-icon-wrap gold"><i data-feather="dollar-sign" style="width:18px;"></i></div>
                     <span class="stat-label">Lương bình quân</span>
-                    <span class="stat-value" style="font-size: 18px; margin-top: 8px;">${this.formatVND(stats.avgSalary).replace('₫', 'đ')}</span>
-                    <div class="stat-icon"><i data-feather="dollar-sign"></i></div>
+                    <span class="stat-value" style="font-size:14px;">${this.formatVND(stats.avgSalary).replace('₫','đ')}</span>
+                    <span class="stat-sub">mức lương trung bình</span>
                 </div>
-                <div class="ios-card stat-item">
-                    <span class="stat-label">Đã đóng BHXH</span>
-                    <span class="stat-value">${stats.insurance.insured} <span style="font-size: 13px; color: var(--ios-blue); font-weight: 500;">(${insuredPercentage}%)</span></span>
-                    <div class="stat-icon"><i data-feather="shield"></i></div>
+                <div class="stat-item blue">
+                    <div class="stat-icon-wrap blue"><i data-feather="shield" style="width:18px;"></i></div>
+                    <span class="stat-label">Đóng BHXH</span>
+                    <span class="stat-value">${stats.insurance.insured}</span>
+                    <span class="stat-sub">${insuredPercentage}% tham gia BH</span>
                 </div>
             </div>
 
-            <!-- Charts Section -->
-            <div class="ios-card">
-                <h3 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
-                    <i data-feather="pie-chart" style="color: var(--ios-red); width: 18px;"></i>
-                    Thành viên theo Đơn vị
+            <!-- Department Breakdown -->
+            <div class="ios-card" style="animation: fadeInUp 0.4s ease;">
+                <h3 style="font-family:'Outfit',sans-serif; font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:14px; display:flex; align-items:center; gap:8px;">
+                    <i data-feather="bar-chart-2" style="width:16px; color:var(--brand-red,#D32F2F);"></i>
+                    Nhân sự theo Đơn vị
                 </h3>
-                
-                <div class="chart-container">
-                    ${this.generateDonutChart(stats.deptCounts, stats.total)}
-                </div>
-                
-                <div class="chart-legend">
+                <div style="display:flex; flex-direction:column; gap:10px;">
         `;
 
-        // Generate dynamic legend
-        const colors = ['#D32F2F', '#FF8A80', '#007AFF', '#34C759', '#FF9500'];
-        DaLanStore.DEPARTMENTS.forEach((dept, idx) => {
+        DaLanStore.DEPARTMENTS.forEach(dept => {
             const count = stats.deptCounts[dept] || 0;
             const pct = stats.total > 0 ? Math.round((count / stats.total) * 100) : 0;
+            const dc = deptColors[dept] || { bar: '#888', label: 'gray' };
             html += `
-                <div class="legend-item">
-                    <div class="legend-color" style="background-color: ${colors[idx % colors.length]};"></div>
-                    <span style="font-weight: 500; flex: 1;">${dept}</span>
-                    <span style="font-weight: 600; color: var(--text-primary);">${count} (${pct}%)</span>
+                <div class="dept-progress-row">
+                    <span class="dept-progress-label">${dept}</span>
+                    <div class="dept-progress-track">
+                        <div class="dept-progress-fill" style="width:${pct}%; background:${dc.bar};"></div>
+                    </div>
+                    <span class="dept-progress-count">${count}</span>
                 </div>
             `;
         });
+
+        const activeOrderCount = activeOrders.length;
 
         html += `
                 </div>
             </div>
 
-            <!-- F&B Digital Ordering Hub (Phân hệ Đặt món cho Khách) -->
-            <div class="ios-card" style="background: linear-gradient(135deg, rgba(211, 47, 47, 0.1) 0%, rgba(255, 138, 128, 0.1) 100%); border: 1px solid rgba(211, 47, 47, 0.2); margin-bottom: 16px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <div>
-                        <span style="font-size: 10px; text-transform: uppercase; font-weight: 700; color: var(--ios-red); display: block; letter-spacing: 0.5px;">Phân hệ F&B Gọi Món Tự Động</span>
-                        <h3 style="font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; margin-top: 2px; color: var(--text-primary);">Dạ Lan Order Suite</h3>
+            <!-- F&B Order Suite Card -->
+            <div class="ios-card" style="background: linear-gradient(135deg, var(--brand-red,#D32F2F) 0%, #b71c1c 100%); border:none; color:white; animation: fadeInUp 0.4s ease;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="background:rgba(255,255,255,0.2); width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center;">
+                            <i data-feather="coffee" style="width:20px; color:white;"></i>
+                        </div>
+                        <div>
+                            <span style="font-size:9px; text-transform:uppercase; font-weight:700; opacity:0.8; letter-spacing:0.5px; display:block;">Phân hệ F&B</span>
+                            <h3 style="font-family:'Outfit',sans-serif; font-size:16px; font-weight:800; margin:0; color:white;">Dạ Lan Order Suite</h3>
+                        </div>
                     </div>
-                    <div style="background-color: var(--ios-red); color: white; padding: 2px 6px; border-radius: 10px; font-size: 8px; font-weight: 700; text-transform: uppercase;">Mới</div>
+                    ${activeOrderCount > 0 ? `<span style="background:white; color:var(--brand-red,#D32F2F); font-size:10px; font-weight:800; padding:3px 10px; border-radius:20px; display:flex; align-items:center; gap:4px;"><i data-feather="zap" style="width:10px;"></i>${activeOrderCount} đơn đang xử lý</span>` : `<span style="background:rgba(255,255,255,0.2); color:white; font-size:10px; font-weight:700; padding:3px 10px; border-radius:20px;">Không có đơn</span>`}
                 </div>
-                <p style="font-size: 11px; color: var(--text-secondary); line-height: 1.4; margin-bottom: 12px;">
-                    Hệ thống đặt món số hóa cho khách tại bàn. Tự động tính tiền và hạch toán dòng thu trực tiếp vào sổ quỹ của công ty.
-                </p>
-                <div style="display: flex; gap: 10px;">
-                    <button class="ios-btn ios-btn-primary" onclick="App.enterCustomerMode()" style="flex: 1; padding: 8px 10px; font-size: 12px; background-color: var(--ios-red) !important; color: white !important; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                        <i data-feather="tablet" style="width: 14px;"></i>
-                        Khách đặt món (QR)
+                <p style="font-size:11px; opacity:0.85; line-height:1.5; margin-bottom:14px;">Hệ thống gọi món số hóa tại bàn – tự động hạch toán dòng thu vào sổ quỹ.</p>
+                <div style="display:flex; gap:10px;">
+                    <button onclick="App.enterCustomerMode()" style="flex:1; background:white; border:none; color:var(--brand-red,#D32F2F); font-size:12px; font-weight:800; padding:10px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        <i data-feather="tablet" style="width:14px;"></i> Khách đặt món
                     </button>
-                    <button class="ios-btn ios-btn-secondary" onclick="App.openOrderQueueModal()" style="flex: 1; padding: 8px 10px; font-size: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; position: relative;">
-                        <i data-feather="shopping-bag" style="width: 14px;"></i>
-                        Bếp xử lý
-                        ${DaLanStore.getOrders().filter(o => o.status === 'pending' || o.status === 'preparing').length > 0 ? `
-                            <span style="background-color: var(--ios-red); color: white; font-size: 8px; font-weight: 700; border-radius: 50%; width: 15px; height: 15px; display: flex; align-items: center; justify-content: center; position: absolute; top: -6px; right: -6px; border: 1.5px solid var(--bg-card);">
-                                ${DaLanStore.getOrders().filter(o => o.status === 'pending' || o.status === 'preparing').length}
-                            </span>
-                        ` : ''}
+                    <button onclick="App.openOrderQueueModal()" style="flex:1; background:rgba(255,255,255,0.18); border:1px solid rgba(255,255,255,0.35); color:white; font-size:12px; font-weight:700; padding:10px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        <i data-feather="shopping-bag" style="width:14px;"></i> Bếp xử lý
                     </button>
                 </div>
             </div>
 
-            <!-- Recent Quick Actions -->
-            <div class="ios-card" style="margin-bottom: 24px;">
-                <h3 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Lối tắt nhanh</h3>
-                <div style="display: flex; gap: 12px;">
-                    <button class="ios-btn ios-btn-primary" onclick="App.openAddForm()" style="flex: 1; padding: 10px;">
-                        <i data-feather="user-plus" style="width: 16px;"></i>
-                        Thêm nhân sự
+            <!-- Quick Actions -->
+            <div class="ios-card" style="margin-bottom:24px; animation: fadeInUp 0.4s ease;">
+                <h3 style="font-family:'Outfit',sans-serif; font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:12px; display:flex; align-items:center; gap:8px;">
+                    <i data-feather="zap" style="width:16px; color:var(--brand-gold,#F9A825);"></i>
+                    Lối tắt nhanh
+                </h3>
+                <div style="display:flex; gap:10px;">
+                    <button class="ios-btn ios-btn-primary" onclick="App.openAddForm()" style="flex:1; padding:10px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        <i data-feather="user-plus" style="width:15px;"></i> Thêm nhân sự
                     </button>
-                    <button class="ios-btn ios-btn-secondary" onclick="App.switchTab('orgchart')" style="flex: 1; padding: 10px;">
-                        <i data-feather="git-pull-request" style="width: 16px;"></i>
-                        Xem sơ đồ
+                    <button class="ios-btn ios-btn-secondary" onclick="App.openTransactionForm()" style="flex:1; padding:10px; display:flex; align-items:center; justify-content:center; gap:6px;">
+                        <i data-feather="plus-circle" style="width:15px;"></i> Ghi giao dịch
                     </button>
                 </div>
             </div>
@@ -1227,6 +1240,14 @@ const DaLanComponents = {
     renderCustomerOrderPortal(container, activeCategory = "Tất cả", searchQuery = "") {
         const menu = DaLanStore.FOOD_MENU;
         const categories = ["Tất cả", "Khai vị", "Món chính", "Đồ uống", "Tráng miệng"];
+        const categoryEmojis = { 'Tất cả': '🍽️', 'Khai vị': '🥗', 'Món chính': '🍲', 'Đồ uống': '🥤', 'Tráng miệng': '🍮' };
+        const categoryGradients = {
+            'Khai vị':    'linear-gradient(135deg,#E8F5E9,#C8E6C9)',
+            'Món chính':  'linear-gradient(135deg,#FFEBEE,#FFCDD2)',
+            'Đồ uống':    'linear-gradient(135deg,#E3F2FD,#BBDEFB)',
+            'Tráng miệng':'linear-gradient(135deg,#F3E5F5,#E1BEE7)',
+            'Tất cả':     'linear-gradient(135deg,#ECEFF1,#CFD8DC)'
+        };
         
         // Ensure cart state is initialized
         if (!App.cart) App.cart = {};
@@ -1287,13 +1308,12 @@ const DaLanComponents = {
 
             <!-- Customer Order Tracking Section (if has active orders) -->
             ${activeOrders.length > 0 ? `
-                <div class="ios-card order-tracker-card" style="border:1.5px solid var(--ios-orange); background-color:rgba(255, 149, 0, 0.05);">
+                <div class="ios-card order-tracker-card" style="border:1.5px solid var(--ios-orange); background-color:rgba(255, 149, 0, 0.05); margin-bottom: 16px;">
                     <h3 style="font-family:'Outfit', sans-serif; font-size:14px; font-weight:700; color:var(--ios-orange); margin-bottom:8px; display:flex; align-items:center; gap:6px;">
                         <i data-feather="clock" style="width:16px;"></i> Đơn hàng đang phục vụ của bạn
                     </h3>
                     ${activeOrders.map(order => {
                         const isPending = order.status === "pending";
-                        const stepClass = isPending ? "pending" : "preparing";
                         
                         return `
                             <div style="border-bottom: 1px solid var(--border-color); padding: 8px 0; font-size:12px;">
@@ -1339,84 +1359,77 @@ const DaLanComponents = {
                     ${searchQuery ? `<button id="menu-search-clear-btn" style="background:none; border:none; color:var(--text-tertiary); cursor:pointer;"><i data-feather="x-circle" style="width:16px;"></i></button>` : ''}
                 </div>
                 
-                <!-- Horizontal Capsule Category Scrollbar -->
-                <div class="ios-segmented-control" id="menu-category-segment" style="margin-top: 10px; margin-bottom: 0; display:flex; overflow-x:auto; -webkit-overflow-scrolling:touch;">
-                    ${categories.map(cat => `
-                        <button class="segment-btn ${activeCategory === cat ? 'active' : ''}" data-val="${cat}" style="min-width: 80px; flex-shrink:0;">${cat}</button>
-                    `).join('')}
+                <!-- Category Pills -->
+                <div class="menu-category-pills" id="menu-category-segment">
+                    ${categories.map(cat => {
+                        const emoji = categoryEmojis[cat] || '🍽️';
+                        return `
+                            <button class="segment-btn cat-pill ${activeCategory === cat ? 'active' : ''}" data-val="${cat}">
+                                <span>${emoji}</span> ${cat}
+                            </button>
+                        `;
+                    }).join('')}
                 </div>
             </div>
-
-            <!-- Food Menu grid list -->
-            <div class="menu-items-grid" style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px; margin-bottom: 120px;">
         `;
 
         if (filteredMenu.length === 0) {
             html += `
-                <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary); background-color: var(--bg-secondary); border-radius: 12px; border: 1px dashed var(--border-color); margin-top: 10px;">
+                <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary); background-color: var(--bg-secondary); border-radius: 12px; border: 1px dashed var(--border-color); margin-top: 10px; margin-bottom: 120px;">
                     <i data-feather="coffee" style="width: 36px; height: 36px; color: var(--text-tertiary); margin-bottom: 8px;"></i>
                     <p style="font-weight: 500;">Không tìm thấy món ăn nào phù hợp</p>
                 </div>
             `;
         } else {
+            html += `<div class="food-grid">`;
             filteredMenu.forEach(item => {
                 const qty = App.cart[item.id] || 0;
+                const grad = categoryGradients[item.category] || categoryGradients['Tất cả'];
+                const em = categoryEmojis[item.category] || '🍽️';
                 
-                // Use built-in beautiful illustrations or gradient icons if no real image
                 html += `
-                    <div class="food-item-card" style="display: flex; background: var(--bg-card); border-radius: 14px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--border-color); align-items: center; gap: 12px; transition: transform 0.15s ease;">
-                        <div class="food-icon-box" style="width: 70px; height: 70px; border-radius: 10px; background: linear-gradient(135deg, rgba(213,47,47,0.1) 0%, rgba(255,138,128,0.1) 100%); display:flex; align-items:center; justify-content:center; color:var(--ios-red); font-size:24px; flex-shrink:0;">
-                            <i data-feather="${item.icon}"></i>
+                    <div class="food-card-2col" style="animation: fadeInUp 0.4s ease;">
+                        <div class="food-card-img" style="background: ${grad};">
+                            ${em}
                         </div>
-                        <div class="food-info" style="flex:1; min-width:0;">
-                            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:4px;">
-                                <h4 style="font-family:'Outfit', sans-serif; font-size:14px; font-weight:700; margin:0; color:var(--text-primary); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${item.name}</h4>
-                                <span style="font-size:10px; font-weight:700; background-color:var(--bg-secondary); color:var(--text-secondary); padding:2px 6px; border-radius:8px; flex-shrink:0;">${item.category}</span>
-                            </div>
-                            <p style="font-size:11px; color:var(--text-secondary); margin:4px 0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; line-height:1.3;">${item.desc}</p>
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:6px;">
-                                <span style="font-size:14px; font-weight:800; color:var(--ios-red);">${this.formatVND(item.price).replace('₫', 'đ')}</span>
-                                
-                                <!-- Quantity / Cart Controls -->
-                                <div id="food-ctrl-${item.id}">
-                                    ${qty === 0 ? `
-                                        <button class="add-to-cart-btn" onclick="App.addToCart('${item.id}')" style="background-color:var(--ios-red); border:none; color:white; font-size:11px; font-weight:700; padding:6px 12px; border-radius:20px; cursor:pointer; display:flex; align-items:center; gap:4px; box-shadow:0 2px 6px rgba(211,47,47,0.25);">
-                                            <i data-feather="plus" style="width:12px; height:12px;"></i> Thêm món
-                                        </button>
-                                    ` : `
-                                        <div class="qty-counter" style="display:flex; align-items:center; background-color:var(--bg-secondary); border-radius:20px; border:1px solid var(--border-color); padding:2px;">
-                                            <button onclick="App.updateCartQty('${item.id}', -1)" style="width:24px; height:24px; border-radius:50%; border:none; background:white; color:var(--text-primary); font-weight:800; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(0,0,0,0.1);">-</button>
-                                            <span style="font-size:12px; font-weight:700; color:var(--text-primary); min-width:24px; text-align:center;">${qty}</span>
-                                            <button onclick="App.updateCartQty('${item.id}', 1)" style="width:24px; height:24px; border-radius:50%; border:none; background:var(--ios-red); color:white; font-weight:800; font-size:14px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 1px 3px rgba(211,47,47,0.2);">+</button>
-                                        </div>
-                                    `}
+                        <div class="food-card-body">
+                            <h4 class="food-card-name">${item.name}</h4>
+                            <div class="food-card-price">${this.formatVND(item.price).replace('₫', 'đ')}</div>
+                        </div>
+                        <div class="food-card-actions">
+                            ${qty === 0 ? `
+                                <button class="food-add-btn" onclick="App.addToCart('${item.id}')">
+                                    <i data-feather="plus" style="width:13px; height:13px;"></i> Thêm món
+                                </button>
+                            ` : `
+                                <div class="food-qty-counter">
+                                    <button class="food-qty-btn minus" onclick="App.updateCartQty('${item.id}', -1)">−</button>
+                                    <span class="food-qty-num">${qty}</span>
+                                    <button class="food-qty-btn plus" onclick="App.updateCartQty('${item.id}', 1)">+</button>
                                 </div>
-                            </div>
+                            `}
                         </div>
                     </div>
                 `;
             });
+            html += `</div>`;
         }
 
         html += `
-            </div>
-            
             <!-- Sticky Floating Cart Bar -->
             ${App.getCartTotalQuantity() > 0 ? `
-                <div class="floating-cart-bar" onclick="App.openCartSummary()" style="position:fixed; bottom:20px; left:16px; right:16px; background:linear-gradient(135deg, #1C1C1E 0%, #2C2C2E 100%); border:1px solid rgba(255,255,255,0.15); box-shadow:0 10px 25px rgba(0,0,0,0.3); border-radius:18px; padding:12px 16px; display:flex; justify-content:space-between; align-items:center; z-index:999; animation: slideUp 0.3s cubic-bezier(0.1, 0.76, 0.55, 0.94); cursor:pointer;">
-                    <div style="display:flex; align-items:center; gap:10px; color:white;">
-                        <div style="position:relative; background:var(--ios-red); width:36px; height:36px; border-radius:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 8px rgba(211,47,47,0.4);">
-                            <i data-feather="shopping-cart" style="width:18px; color:white;"></i>
-                            <span style="position:absolute; top:-6px; right:-6px; background:white; color:var(--ios-red); font-size:10px; font-weight:800; width:16px; height:16px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid var(--ios-red);">
-                                ${App.getCartTotalQuantity()}
-                            </span>
+                <div class="floating-cart-bar" onclick="App.openCartSummary()">
+                    <div style="display:flex; align-items:center;">
+                        <div class="cart-icon-wrap">
+                            <i data-feather="shopping-cart" style="width:20px; color:white;"></i>
+                            <span class="cart-badge">${App.getCartTotalQuantity()}</span>
                         </div>
-                        <div>
-                            <span style="font-size:14px; font-weight:800; display:block; color:white !important;">${this.formatVND(App.getCartTotalPrice()).replace('₫', 'đ')}</span>
-                            <span style="font-size:10px; opacity:0.8; display:block;">${App.customerTable} • ${App.customerUnit}</span>
+                        <div class="cart-info">
+                            <span class="cart-total">${this.formatVND(App.getCartTotalPrice()).replace('₫', 'đ')}</span>
+                            <span class="cart-sub">${App.customerTable} • ${App.customerUnit}</span>
                         </div>
                     </div>
-                    <button class="cart-action-btn" style="background:var(--ios-red); border:none; color:white; padding:8px 16px; border-radius:12px; font-weight:700; font-size:12px; display:flex; align-items:center; gap:6px; cursor:pointer; box-shadow: 0 4px 10px rgba(211,47,47,0.3);">
+                    <button class="cart-cta-btn">
                         Xem giỏ hàng <i data-feather="chevron-right" style="width:16px;"></i>
                     </button>
                 </div>
@@ -1435,139 +1448,138 @@ const DaLanComponents = {
     // ==========================================
     renderOrderQueue(container, statusFilter = "Tất cả", unitFilter = "Tất cả") {
         const orders = DaLanStore.getOrders();
-        
-        // Filter orders
-        const filteredOrders = orders.filter(o => {
-            const matchesStatus = statusFilter === "Tất cả" || o.status === statusFilter;
-            const matchesUnit = unitFilter === "Tất cả" || o.unit === unitFilter;
-            return matchesStatus && matchesUnit;
-        });
+        const now = Date.now();
 
-        let html = `
-            <div class="order-queue-container" style="padding-bottom:30px;">
-                <!-- Filter bar -->
-                <div style="background-color: var(--bg-card); border-radius: 14px; border:1px solid var(--border-color); padding:12px; margin-bottom:16px; display:flex; flex-direction:column; gap:10px;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h4 style="font-family:'Outfit', sans-serif; font-size:14px; font-weight:700; margin:0; color:var(--text-primary);">Bộ lọc hạch toán</h4>
-                        <span style="font-size:11px; font-weight:700; color:var(--ios-red);">${filteredOrders.length} đơn hàng</span>
-                    </div>
-                    
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-                        <div>
-                            <label style="font-size:9px; text-transform:uppercase; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Lọc đơn vị</label>
-                            <select id="queue-unit-filter" onchange="App.setQueueFilters()" style="width:100%; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:6px 10px; color:var(--text-primary); font-size:12px; font-weight:600; outline:none; cursor:pointer;">
-                                <option value="Tất cả" ${unitFilter === "Tất cả" ? 'selected' : ''}>Tất cả Đơn vị</option>
-                                <option value="Dạ Lan Center" ${unitFilter === "Dạ Lan Center" ? 'selected' : ''}>Dạ Lan Center</option>
-                                <option value="Dạ Lan Star" ${unitFilter === "Dạ Lan Star" ? 'selected' : ''}>Dạ Lan Star</option>
-                                <option value="Dạ Lan Event" ${unitFilter === "Dạ Lan Event" ? 'selected' : ''}>Dạ Lan Event</option>
-                                <option value="Nhà máy Dạ Lan" ${unitFilter === "Nhà máy Dạ Lan" ? 'selected' : ''}>Nhà máy Dạ Lan</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label style="font-size:9px; text-transform:uppercase; font-weight:700; color:var(--text-secondary); display:block; margin-bottom:4px;">Lọc trạng thái</label>
-                            <select id="queue-status-filter" onchange="App.setQueueFilters()" style="width:100%; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:8px; padding:6px 10px; color:var(--text-primary); font-size:12px; font-weight:600; outline:none; cursor:pointer;">
-                                <option value="Tất cả" ${statusFilter === "Tất cả" ? 'selected' : ''}>Tất cả trạng thái</option>
-                                <option value="pending" ${statusFilter === "pending" ? 'selected' : ''}>Chờ duyệt</option>
-                                <option value="preparing" ${statusFilter === "preparing" ? 'selected' : ''}>Đang chế biến</option>
-                                <option value="completed" ${statusFilter === "completed" ? 'selected' : ''}>Đã hoàn thành</option>
-                                <option value="cancelled" ${statusFilter === "cancelled" ? 'selected' : ''}>Đã hủy</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Orders Grid -->
-                <div class="orders-kanban-list" style="display:flex; flex-direction:column; gap:12px;">
-        `;
-
-        if (filteredOrders.length === 0) {
-            html += `
-                <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary); background-color: var(--bg-secondary); border-radius: 12px; border: 1px dashed var(--border-color);">
-                    <i data-feather="shopping-bag" style="width: 36px; height: 36px; color: var(--text-tertiary); margin-bottom: 8px;"></i>
-                    <p style="font-weight: 500;">Không tìm thấy đơn hàng nào trong danh sách</p>
-                </div>
-            `;
-        } else {
-            filteredOrders.forEach(order => {
-                let statusLabel = "Chờ duyệt";
-                let statusColor = "var(--ios-orange)";
-                let statusBg = "rgba(255, 149, 0, 0.1)";
-                
-                if (order.status === "preparing") {
-                    statusLabel = "Đang chuẩn bị";
-                    statusColor = "var(--ios-blue)";
-                    statusBg = "rgba(0, 122, 255, 0.1)";
-                } else if (order.status === "completed") {
-                    statusLabel = "Hoàn thành";
-                    statusColor = "var(--ios-green)";
-                    statusBg = "rgba(52, 199, 89, 0.1)";
-                } else if (order.status === "cancelled") {
-                    statusLabel = "Đã hủy";
-                    statusColor = "var(--ios-red)";
-                    statusBg = "rgba(211, 47, 47, 0.1)";
-                }
-
-                const orderTime = new Date(order.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-
-                html += `
-                    <div class="order-queue-card" style="background:var(--bg-card); border-radius:14px; border:1px solid var(--border-color); padding:14px; display:flex; flex-direction:column; gap:10px; box-shadow:0 2px 8px rgba(0,0,0,0.03);">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <span style="font-family:'Outfit', sans-serif; font-size:14px; font-weight:800; color:var(--text-primary);">${order.id} • ${order.table}</span>
-                                <span style="font-size:11px; color:var(--text-secondary); display:block; margin-top:2px;">${order.unit} • ${orderTime}</span>
-                            </div>
-                            <span style="font-size:10px; font-weight:700; color:${statusColor}; background:${statusBg}; padding:4px 10px; border-radius:12px; text-transform:uppercase;">${statusLabel}</span>
-                        </div>
-
-                        <!-- Items list -->
-                        <div style="background-color:var(--bg-secondary); border-radius:8px; padding:10px; font-size:12px; display:flex; flex-direction:column; gap:6px;">
-                            ${order.items.map(item => `
-                                <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                                    <div style="flex:1;">
-                                        <strong style="color:var(--text-primary);">${item.name}</strong> <span style="color:var(--ios-red); font-weight:700;">x${item.quantity}</span>
-                                        ${item.notes ? `<div style="font-size:10px; color:var(--ios-orange); font-style:italic; margin-top:2px;"><i data-feather="edit-3" style="width:10px; height:10px; vertical-align:middle; margin-right:2px;"></i>${item.notes}</div>` : ''}
-                                    </div>
-                                    <span style="font-weight:600; color:var(--text-primary);">${this.formatVND(item.price * item.quantity).replace('₫', 'đ')}</span>
-                                </div>
-                            `).join('')}
-                            
-                            ${order.notes ? `
-                                <div style="border-top:1px solid var(--border-color); padding-top:6px; font-size:11px; color:var(--text-secondary);">
-                                    <strong>Lời nhắn từ khách:</strong> ${order.notes}
-                                </div>
-                            ` : ''}
-                        </div>
-
-                        <!-- Total Bill -->
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-top: 1px solid var(--border-color); padding-top:10px;">
-                            <div>
-                                <span style="font-size:11px; color:var(--text-secondary);">Tổng thanh toán:</span>
-                                <strong style="font-size:15px; color:var(--ios-red); display:block; font-family:'Outfit', sans-serif; font-weight:800;">${this.formatVND(order.totalAmount).replace('₫', 'đ')}</strong>
-                            </div>
-                            
-                            <!-- Action buttons -->
-                            <div style="display:flex; gap:6px;">
-                                ${order.status === "pending" ? `
-                                    <button class="ios-btn" onclick="App.changeOrderStatus('${order.id}', 'cancelled')" style="background-color:rgba(211,47,47,0.1); color:var(--ios-red); border:none; padding:6px 12px; font-size:11px; font-weight:700; border-radius:8px; cursor:pointer;">Hủy Đơn</button>
-                                    <button class="ios-btn ios-btn-primary" onclick="App.changeOrderStatus('${order.id}', 'preparing')" style="background-color:var(--ios-orange) !important; color:white; border:none; padding:6px 12px; font-size:11px; font-weight:700; border-radius:8px; cursor:pointer;">Chuẩn Bị</button>
-                                ` : ''}
-                                ${order.status === "preparing" ? `
-                                    <button class="ios-btn" onclick="App.changeOrderStatus('${order.id}', 'cancelled')" style="background-color:rgba(211,47,47,0.1); color:var(--ios-red); border:none; padding:6px 12px; font-size:11px; font-weight:700; border-radius:8px; cursor:pointer;">Hủy Đơn</button>
-                                    <button class="ios-btn ios-btn-primary" onclick="App.changeOrderStatus('${order.id}', 'completed')" style="background-color:var(--ios-green) !important; color:white; border:none; padding:6px 12px; font-size:11px; font-weight:700; border-radius:8px; cursor:pointer; display:flex; align-items:center; gap:4px;">
-                                        <i data-feather="check-circle" style="width:12px;"></i> Hoàn Tất & Thu Tiền
-                                    </button>
-                                ` : ''}
-                                ${order.status === "completed" || order.status === "cancelled" ? `
-                                    <button onclick="App.deleteOrderLog('${order.id}')" style="background:none; border:none; color:var(--text-tertiary); cursor:pointer; padding:6px;"><i data-feather="trash-2" style="width:16px;"></i></button>
-                                ` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
+        // Helper: elapsed minutes
+        function elapsedMin(ts) {
+            return Math.floor((now - new Date(ts).getTime()) / 60000);
         }
 
-        html += `
+        // Split orders into 3 kanban columns (all orders, unaffected by filter but filter hides cards)
+        const pendingOrders  = orders.filter(o => o.status === 'pending');
+        const prepOrders     = orders.filter(o => o.status === 'preparing');
+        const doneOrders     = orders.filter(o => o.status === 'completed' || o.status === 'cancelled');
+
+        // Helper: should card be visible under current filters
+        function isVisible(o) {
+            const matchesStatus = statusFilter === 'Tất cả' || o.status === statusFilter;
+            const matchesUnit   = unitFilter   === 'Tất cả' || o.unit   === unitFilter;
+            return matchesStatus && matchesUnit;
+        }
+
+        // Build a kanban card
+        const buildCard = (order) => {
+            const elapsed = elapsedMin(order.timestamp);
+            const isUrgent = elapsed > 10;
+            const display = isVisible(order) ? '' : 'display:none;';
+            const total = order.items.reduce((s, i) => s + i.price * i.quantity, 0);
+
+            let actionBtns = '';
+            if (order.status === 'pending') {
+                actionBtns = `
+                    <button class="kanban-action-btn cancel" onclick="App.changeOrderStatus('${order.id}','cancelled')">Hủy</button>
+                    <button class="kanban-action-btn prep" onclick="App.changeOrderStatus('${order.id}','preparing')">Chuẩn Bị</button>
+                `;
+            } else if (order.status === 'preparing') {
+                actionBtns = `
+                    <button class="kanban-action-btn cancel" onclick="App.changeOrderStatus('${order.id}','cancelled')">Hủy</button>
+                    <button class="kanban-action-btn done" onclick="App.changeOrderStatus('${order.id}','completed')">
+                        <i data-feather="check-circle" style="width:12px;"></i> Hoàn Tất &amp; Thu Tiền
+                    </button>
+                `;
+            } else {
+                actionBtns = `<button class="kanban-action-btn delete" onclick="App.deleteOrderLog('${order.id}')"><i data-feather="trash-2" style="width:13px;"></i> Xóa</button>`;
+            }
+
+            return `
+                <div class="order-kcard" style="${display}">
+                    <div class="order-kcard-header">
+                        <span class="order-kcard-id">${order.id}</span>
+                        <div style="display:flex; align-items:center; gap:6px;">
+                            <span class="order-kcard-table">${order.table}</span>
+                            <span class="order-elapsed${isUrgent ? ' urgent' : ''}">${elapsed}ph</span>
+                        </div>
+                    </div>
+                    <div style="font-size:10px; color:var(--text-secondary); margin-bottom:8px; font-weight:500;">${order.unit}</div>
+                    <div class="order-kcard-items">
+                        ${order.items.map(item => `
+                            <div class="order-kcard-item">
+                                <span class="order-kcard-item-name">${item.name}</span>
+                                <span class="order-kcard-item-qty">x${item.quantity}</span>
+                            </div>
+                            ${item.notes ? `<div class="order-kcard-note"><i data-feather="edit-3" style="width:10px;"></i> ${item.notes}</div>` : ''}
+                        `).join('')}
+                    </div>
+                    ${order.notes ? `<div class="order-kcard-note" style="margin-top:4px;"><i data-feather="message-circle" style="width:10px;"></i> ${order.notes}</div>` : ''}
+                    <div class="order-kcard-footer">
+                        <span class="order-kcard-total">${this.formatVND(total).replace('₫','đ')}</span>
+                        <div style="display:flex; gap:6px;">${actionBtns}</div>
+                    </div>
+                </div>
+            `;
+        };
+
+        // Build full HTML
+        let html = `
+            <div style="padding-bottom:30px;">
+                <!-- Filter row -->
+                <div style="display:flex; gap:10px; margin-bottom:14px; align-items:center;">
+                    <div style="flex:1;">
+                        <select id="queue-unit-filter" onchange="App.setQueueFilters()" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:8px 12px; color:var(--text-primary); font-size:12px; font-weight:600; outline:none; cursor:pointer;">
+                            <option value="Tất cả" ${unitFilter === 'Tất cả' ? 'selected' : ''}>🏢 Tất cả Đơn vị</option>
+                            <option value="Dạ Lan Center" ${unitFilter === 'Dạ Lan Center' ? 'selected' : ''}>Dạ Lan Center</option>
+                            <option value="Dạ Lan Star" ${unitFilter === 'Dạ Lan Star' ? 'selected' : ''}>Dạ Lan Star</option>
+                            <option value="Dạ Lan Event" ${unitFilter === 'Dạ Lan Event' ? 'selected' : ''}>Dạ Lan Event</option>
+                            <option value="Nhà máy Dạ Lan" ${unitFilter === 'Nhà máy Dạ Lan' ? 'selected' : ''}>Nhà máy Dạ Lan</option>
+                        </select>
+                    </div>
+                    <div style="flex:1;">
+                        <select id="queue-status-filter" onchange="App.setQueueFilters()" style="width:100%; background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:8px 12px; color:var(--text-primary); font-size:12px; font-weight:600; outline:none; cursor:pointer;">
+                            <option value="Tất cả" ${statusFilter === 'Tất cả' ? 'selected' : ''}>📋 Tất cả Trạng thái</option>
+                            <option value="pending" ${statusFilter === 'pending' ? 'selected' : ''}>⏳ Chờ duyệt</option>
+                            <option value="preparing" ${statusFilter === 'preparing' ? 'selected' : ''}>🔥 Đang chuẩn bị</option>
+                            <option value="completed" ${statusFilter === 'completed' ? 'selected' : ''}>✅ Hoàn thành</option>
+                            <option value="cancelled" ${statusFilter === 'cancelled' ? 'selected' : ''}>❌ Đã hủy</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Kanban Board -->
+                <div class="kanban-board">
+
+                    <!-- Column: Pending -->
+                    <div class="kanban-col kanban-col-pending">
+                        <div class="kanban-col-header">
+                            <span class="kanban-col-title">⏳ Chờ duyệt</span>
+                            <span class="kanban-col-count">${pendingOrders.length}</span>
+                        </div>
+                        <div class="kanban-col-body">
+                            ${pendingOrders.length === 0 ? `<div style="text-align:center; padding:20px; color:var(--text-tertiary); font-size:12px;">Không có đơn</div>` : pendingOrders.map(o => buildCard(o)).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Column: Preparing -->
+                    <div class="kanban-col kanban-col-prep">
+                        <div class="kanban-col-header">
+                            <span class="kanban-col-title">🔥 Đang chuẩn bị</span>
+                            <span class="kanban-col-count">${prepOrders.length}</span>
+                        </div>
+                        <div class="kanban-col-body">
+                            ${prepOrders.length === 0 ? `<div style="text-align:center; padding:20px; color:var(--text-tertiary); font-size:12px;">Không có đơn</div>` : prepOrders.map(o => buildCard(o)).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Column: Done / Cancelled -->
+                    <div class="kanban-col kanban-col-done">
+                        <div class="kanban-col-header">
+                            <span class="kanban-col-title">✅ Hoàn thành</span>
+                            <span class="kanban-col-count">${doneOrders.length}</span>
+                        </div>
+                        <div class="kanban-col-body">
+                            ${doneOrders.length === 0 ? `<div style="text-align:center; padding:20px; color:var(--text-tertiary); font-size:12px;">Không có đơn</div>` : doneOrders.map(o => buildCard(o)).join('')}
+                        </div>
+                    </div>
+
                 </div>
             </div>
         `;

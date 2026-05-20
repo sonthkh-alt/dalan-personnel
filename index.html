@@ -19,7 +19,7 @@
     <!-- Google Fonts: Inter & Outfit -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     
     <!-- CSS Stylesheet -->
     <link rel="stylesheet" href="css/styles.css">
@@ -134,16 +134,16 @@
         </div>
     </div>
 
-    <!-- Full-screen Slide-up Modal (Staff Order Queue Panel) -->
+    <!-- Full-screen Slide-up Modal (Staff Order Queue Panel — Kanban Kitchen) -->
     <div class="ios-modal-overlay" id="order-queue-overlay">
         <div class="ios-modal" id="order-queue-modal">
             <header class="ios-modal-header">
                 <button class="modal-nav-btn cancel-btn" id="close-order-queue-btn">Đóng</button>
-                <h2 class="modal-title">Bếp & Hạch toán Đơn hàng</h2>
-                <button class="modal-nav-btn save-btn" onclick="App.refreshOrderQueue()" style="display:flex; align-items:center;"><i data-feather="rotate-cw" style="width:18px; color:var(--ios-red);"></i></button>
+                <h2 class="modal-title">🍳 Bếp & Đơn hàng</h2>
+                <button class="modal-nav-btn save-btn" onclick="App.refreshOrderQueue()" style="display:flex; align-items:center;"><i data-feather="rotate-cw" style="width:18px; color:var(--brand-red,#C62828);"></i></button>
             </header>
-            <div class="ios-modal-body" id="order-queue-modal-body" style="background-color: var(--bg-primary);">
-                <!-- Active order queue cards will be injected here -->
+            <div id="order-queue-modal-body" style="flex:1; overflow:hidden; background-color:var(--bg-primary); display:flex; flex-direction:column;">
+                <!-- Active order kanban board will be injected here -->
             </div>
         </div>
     </div>
