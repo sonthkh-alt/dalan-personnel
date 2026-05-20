@@ -9,6 +9,9 @@ const App = {
     activeFilterDept: "Tất cả",
     activeFilterStatus: "Tất cả",
     activeEditEmployeeId: null,
+    activeTxSearchQuery: "",
+    activeTxFilterType: "Tất cả",
+    activeEditTransactionId: null,
 
     // --- Bootstrapping App ---
     init() {
@@ -53,6 +56,25 @@ const App = {
         const saveFormBtn = document.getElementById("save-form-btn");
         if (saveFormBtn) {
             saveFormBtn.addEventListener("click", () => this.saveEmployeeForm());
+        }
+
+        // Bind transaction modal action buttons
+        const cancelTxBtn = document.getElementById("cancel-transaction-btn");
+        if (cancelTxBtn) {
+            cancelTxBtn.addEventListener("click", () => this.closeTransactionForm());
+        }
+
+        const saveTxBtn = document.getElementById("save-transaction-btn");
+        if (saveTxBtn) {
+            saveTxBtn.addEventListener("click", () => this.saveTransactionForm());
+        }
+
+        // Bind transaction overlay tap to dismiss
+        const txOverlay = document.getElementById("transaction-overlay");
+        if (txOverlay) {
+            txOverlay.addEventListener("click", (e) => {
+                if (e.target === txOverlay) this.closeTransactionForm();
+            });
         }
 
         // Initial render
@@ -118,6 +140,7 @@ const App = {
             "dashboard": "Tổng quan",
             "directory": "Danh sách",
             "orgchart": "Sơ đồ tổ chức",
+            "finance": "Tài chính & Doanh thu",
             "management": "Quản lý hệ thống"
         };
         const titleEl = document.getElementById("tab-title");
@@ -132,6 +155,12 @@ const App = {
                 headerAction.innerHTML = `
                     <button class="nav-action-btn" onclick="App.openAddForm()">
                         <i data-feather="user-plus"></i>
+                    </button>
+                `;
+            } else if (tabName === "finance") {
+                headerAction.innerHTML = `
+                    <button class="nav-action-btn" onclick="App.openTransactionForm()">
+                        <i data-feather="plus"></i>
                     </button>
                 `;
             } else if (tabName === "management") {
@@ -164,6 +193,9 @@ const App = {
                 break;
             case "orgchart":
                 DaLanComponents.renderOrgChart(mainContent);
+                break;
+            case "finance":
+                DaLanComponents.renderFinance(mainContent, this.activeTxSearchQuery, this.activeTxFilterType);
                 break;
             case "management":
                 DaLanComponents.renderManagement(mainContent);
@@ -385,10 +417,168 @@ const App = {
 
     // Reset Store Data Action
     confirmResetMockData() {
-        if (confirm("Bạn có muốn đặt lại toàn bộ hệ thống về dữ liệu 20 nhân viên mẫu ban đầu của Dạ Lan không? Toàn bộ các thay đổi tự thêm sẽ bị xóa.")) {
+        if (confirm("Bạn có muốn đặt lại toàn bộ hệ thống về dữ liệu mẫu ban đầu của Dạ Lan không? Toàn bộ nhân viên và giao dịch tự thêm sẽ bị xóa.")) {
             DaLanStore.resetToMockData();
-            this.showToast("Đã đặt lại dữ liệu mẫu thành công!", "success");
+            DaLanStore.resetTransactionsToMockData();
+            this.showToast("Đã đặt lại toàn bộ dữ liệu mẫu thành công!", "success");
             this.renderCurrentView();
+        }
+    },
+
+    // ==========================================
+    // FINANCE & TRANSACTION LEDGER EVENT BINDINGS
+    // ==========================================
+    bindFinanceEvents() {
+        // Search Input
+        const searchInput = document.getElementById("transaction-search-input");
+        if (searchInput) {
+            searchInput.addEventListener("input", (e) => {
+                this.activeTxSearchQuery = e.target.value;
+                this.renderCurrentView();
+                // Maintain focus on typing
+                const newSearchInput = document.getElementById("transaction-search-input");
+                if (newSearchInput) {
+                    newSearchInput.focus();
+                    newSearchInput.setSelectionRange(newSearchInput.value.length, newSearchInput.value.length);
+                }
+            });
+        }
+
+        // Clear Search Button
+        const clearBtn = document.getElementById("tx-search-clear-btn");
+        if (clearBtn) {
+            clearBtn.addEventListener("click", () => {
+                this.activeTxSearchQuery = "";
+                this.renderCurrentView();
+            });
+        }
+
+        // Segment Filters
+        const typeSegment = document.getElementById("tx-type-segment-control");
+        if (typeSegment) {
+            const buttons = typeSegment.querySelectorAll(".segment-btn");
+            buttons.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    this.activeTxFilterType = btn.getAttribute("data-val");
+                    this.renderCurrentView();
+                });
+            });
+        }
+    },
+
+    // ==========================================
+    // TRANSACTION CRUD MODAL CONTROLS
+    // ==========================================
+    openTransactionForm() {
+        this.activeEditTransactionId = null;
+        
+        const body = document.getElementById("transaction-modal-body");
+        const overlay = document.getElementById("transaction-overlay");
+        const title = document.getElementById("transaction-modal-title");
+        
+        if (body && overlay && title) {
+            title.textContent = "Ghi chép Thu Chi";
+            DaLanComponents.renderTransactionForm(null, body);
+            overlay.classList.add("active");
+        }
+    },
+
+    openEditTransactionForm(txId) {
+        const transactions = DaLanStore.getTransactions();
+        const tx = transactions.find(t => t.id === txId);
+
+        if (!tx) {
+            this.showToast("Không tìm thấy giao dịch!", "error");
+            return;
+        }
+
+        this.activeEditTransactionId = txId;
+
+        const body = document.getElementById("transaction-modal-body");
+        const overlay = document.getElementById("transaction-overlay");
+        const title = document.getElementById("transaction-modal-title");
+
+        if (body && overlay && title) {
+            title.textContent = "Sửa Giao dịch";
+            DaLanComponents.renderTransactionForm(tx, body);
+            overlay.classList.add("active");
+        }
+    },
+
+    closeTransactionForm() {
+        const overlay = document.getElementById("transaction-overlay");
+        if (overlay) {
+            overlay.classList.remove("active");
+        }
+        this.activeEditTransactionId = null;
+    },
+
+    saveTransactionForm() {
+        const form = document.getElementById("transaction-detail-form");
+        if (!form) return;
+
+        // Validation & Parsing
+        const id = document.getElementById("form-tx-id").value.trim();
+        const title = document.getElementById("form-tx-title").value.trim();
+        const amount = Number(document.getElementById("form-tx-amount").value) || 0;
+        const date = document.getElementById("form-tx-date").value;
+        const department = document.getElementById("form-tx-dept").value;
+        const type = document.getElementById("form-tx-type").value;
+        const category = document.getElementById("form-tx-category").value;
+        const notes = document.getElementById("form-tx-notes").value.trim();
+
+        if (!id || !title || !amount || !date || !department || !type || !category) {
+            this.showToast("Vui lòng điền đủ các trường bắt buộc!", "error");
+            return;
+        }
+
+        if (amount <= 0) {
+            this.showToast("Số tiền giao dịch phải lớn hơn 0!", "error");
+            return;
+        }
+
+        const txObj = {
+            id, title, amount, date, department, type, category, notes
+        };
+
+        if (this.activeEditTransactionId) {
+            // Update operation
+            const success = DaLanStore.updateTransaction(this.activeEditTransactionId, txObj);
+            if (success) {
+                this.showToast("Cập nhật giao dịch thành công!", "success");
+            } else {
+                this.showToast("Cập nhật giao dịch thất bại!", "error");
+            }
+        } else {
+            // Add operation
+            // Verify if ID already exists
+            const exists = DaLanStore.getTransactions().some(t => t.id === id);
+            if (exists) {
+                txObj.id = `TX-${Math.floor(100 + Math.random() * 900)}`;
+            }
+
+            const success = DaLanStore.addTransaction(txObj);
+            if (success) {
+                this.showToast("Thêm giao dịch thành công!", "success");
+            } else {
+                this.showToast("Thêm giao dịch thất bại!", "error");
+            }
+        }
+
+        // Close modal, reload current tab
+        this.closeTransactionForm();
+        this.renderCurrentView();
+    },
+
+    confirmDeleteTransaction(txId) {
+        if (confirm("Bạn có chắc chắn muốn xóa giao dịch này khỏi sổ quỹ Dạ Lan? Hành động này không thể hoàn tác.")) {
+            const success = DaLanStore.deleteTransaction(txId);
+            if (success) {
+                this.showToast("Đã xóa giao dịch thành công!", "success");
+                this.renderCurrentView();
+            } else {
+                this.showToast("Không thể xóa giao dịch!", "error");
+            }
         }
     },
 

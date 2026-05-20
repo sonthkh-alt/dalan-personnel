@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Quản lý Nhân sự Dạ Lan</title>
+    <title>Dạ Lan - Nhân sự & Tài chính</title>
     
     <!-- iOS PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -53,7 +53,7 @@
             <!-- Dynamic components will be rendered here -->
         </main>
 
-        <!-- iOS Bottom Tab Bar Navigation -->
+        <!-- iOS Bottom Tab Bar Navigation (5 Tabs HIG compliant) -->
         <nav class="ios-tab-bar">
             <button class="tab-item active" data-tab="dashboard">
                 <i data-feather="grid"></i>
@@ -61,11 +61,15 @@
             </button>
             <button class="tab-item" data-tab="directory">
                 <i data-feather="users"></i>
-                <span>Danh sách</span>
+                <span>Nhân sự</span>
             </button>
             <button class="tab-item" data-tab="orgchart">
                 <i data-feather="git-pull-request"></i>
                 <span>Sơ đồ</span>
+            </button>
+            <button class="tab-item" data-tab="finance">
+                <i data-feather="trending-up"></i>
+                <span>Tài chính</span>
             </button>
             <button class="tab-item" data-tab="management">
                 <i data-feather="settings"></i>
@@ -98,6 +102,20 @@
             </header>
             <div class="ios-modal-body" id="form-modal-body">
                 <!-- Dynamic form fields will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Full-screen Slide-up Modal (Add/Edit Transaction Form) -->
+    <div class="ios-modal-overlay" id="transaction-overlay">
+        <div class="ios-modal" id="transaction-modal">
+            <header class="ios-modal-header">
+                <button class="modal-nav-btn cancel-btn" id="cancel-transaction-btn">Hủy</button>
+                <h2 class="modal-title" id="transaction-modal-title">Ghi chép Thu Chi</h2>
+                <button class="modal-nav-btn save-btn" id="save-transaction-btn">Xong</button>
+            </header>
+            <div class="ios-modal-body" id="transaction-modal-body">
+                <!-- Transaction form will be injected here -->
             </div>
         </div>
     </div>

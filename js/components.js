@@ -815,5 +815,380 @@ const DaLanComponents = {
                 reader.readAsDataURL(file);
             });
         }
+    },
+
+    // ==========================================
+    // 7. RENDER FINANCE DASHBOARD (TÀI CHÍNH)
+    // ==========================================
+    renderFinance(container, searchQuery = "", filterType = "Tất cả") {
+        const stats = DaLanStore.getFinancialStats();
+        const transactions = DaLanStore.getTransactions();
+        
+        // P&L Dashboard Info
+        const revenue = stats.totalRevenue;
+        const foodCost = stats.foodCost;
+        const laborCost = stats.laborCost;
+        const opEx = stats.opEx;
+        const netProfit = stats.netProfit;
+        const totalExpenses = stats.totalExpenses;
+        
+        const primeCostPct = stats.primeCostPercent;
+        const laborCostPct = stats.laborCostPercent;
+        const foodCostPct = stats.foodCostPercent;
+        
+        // Determine health status of Prime Cost
+        let primeStatusText = "An toàn (Tốt)";
+        let primeStatusClass = "safe";
+        let primeStatusNotes = "Chỉ số Prime Cost của chuỗi nhà hàng đang được kiểm soát rất tốt (< 60%). Đảm bảo lợi nhuận biên tối ưu.";
+        
+        if (primeCostPct >= 68) {
+            primeStatusText = "Nguy cơ (Rủi ro cao)";
+            primeStatusClass = "danger";
+            primeStatusNotes = "Prime Cost vượt ngưỡng báo động (> 68%). Cần rà soát ngay giá thành thực phẩm hoặc tinh giản nhân sự.";
+        } else if (primeCostPct >= 60) {
+            primeStatusText = "Cảnh báo (Khá cao)";
+            primeStatusClass = "warning";
+            primeStatusNotes = "Prime Cost đang mấp mé vùng nguy hiểm (60% - 68%). Cần tối ưu chi phí nguyên vật liệu và năng suất lao động.";
+        }
+
+        // Filter transactions for ledger
+        const filteredTx = transactions.filter(tx => {
+            const matchesSearch = searchQuery.trim() === "" ||
+                tx.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                tx.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (tx.notes && tx.notes.toLowerCase().includes(searchQuery.toLowerCase()));
+                
+            const matchesType = filterType === "Tất cả" ||
+                (filterType === "Khoản Thu" && tx.type === "income") ||
+                (filterType === "Khoản Chi" && tx.type === "expense");
+                
+            return matchesSearch && matchesType;
+        });
+
+        let html = `
+            <!-- F&B Business P&L Card -->
+            <div class="ios-card accent-card" style="background: linear-gradient(135deg, #1C1C1E 0%, #2C2C2E 100%); border: 1px solid var(--border-color);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <div>
+                        <span style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; font-weight: 600;">Báo cáo P&L Tháng 05/2026</span>
+                        <h2 style="font-family: 'Outfit', sans-serif; font-size: 26px; font-weight: 800; margin-top: 2px;">
+                            ${netProfit >= 0 ? '+' : ''}${this.formatVND(netProfit).replace('₫', 'đ')}
+                        </h2>
+                        <span style="font-size: 12px; opacity: 0.8;">Lợi nhuận ròng (Net Profit)</span>
+                    </div>
+                    <div style="background-color: ${netProfit >= 0 ? 'rgba(52, 199, 89, 0.2)' : 'rgba(211, 47, 47, 0.2)'}; color: ${netProfit >= 0 ? 'var(--ios-green)' : 'var(--ios-red)'}; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;">
+                        ${netProfit >= 0 ? 'Có Lãi' : 'Thua Lỗ'}
+                    </div>
+                </div>
+                
+                <div style="height: 1px; background-color: rgba(255, 255, 255, 0.1); margin: 12px 0;"></div>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 16px;">
+                    <div>
+                        <span style="font-size: 11px; opacity: 0.6; display: block;">Tổng doanh thu gộp</span>
+                        <span style="font-size: 15px; font-weight: 700; color: #FFFFFF !important;">${this.formatVND(revenue).replace('₫', 'đ')}</span>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; opacity: 0.6; display: block;">Tổng chi phí phát sinh</span>
+                        <span style="font-size: 15px; font-weight: 700; color: #FF8A80 !important;">${this.formatVND(totalExpenses).replace('₫', 'đ')}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Cost Breakdown Grid -->
+            <div class="stats-grid">
+                <div class="ios-card stat-item" style="height: 80px;">
+                    <span class="stat-label">Giá vốn thực phẩm</span>
+                    <span class="stat-value" style="font-size: 16px; margin-top: 4px; color: var(--ios-orange);">${this.formatVND(foodCost).replace('₫', 'đ')}</span>
+                    <span style="font-size: 10px; color: var(--text-secondary); margin-top: 2px;">Tỷ lệ: ${foodCostPct.toFixed(1)}% (COGS)</span>
+                </div>
+                <div class="ios-card stat-item" style="height: 80px;">
+                    <span class="stat-label">Lao động (Dynamic)</span>
+                    <span class="stat-value" style="font-size: 16px; margin-top: 4px; color: var(--ios-blue);">${this.formatVND(laborCost).replace('₫', 'đ')}</span>
+                    <span style="font-size: 10px; color: var(--text-secondary); margin-top: 2px;">Tỷ lệ: ${laborCostPct.toFixed(1)}% (HR Link)</span>
+                </div>
+            </div>
+
+            <!-- F&B Health Indicators Gauge Card -->
+            <div class="ios-card">
+                <h3 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
+                    <i data-feather="heart" style="color: var(--ios-red); width: 18px;"></i>
+                    Sức khỏe Tài chính F&B
+                </h3>
+
+                <!-- Prime Cost % Gauge -->
+                <div class="health-gauge-container">
+                    <div class="gauge-label-row">
+                        <span>Chỉ số Prime Cost % (Food + Labor)</span>
+                        <span style="color: var(--ios-${primeStatusClass === 'safe' ? 'green' : primeStatusClass === 'warning' ? 'orange' : 'red'}); font-weight:700;">
+                            ${primeCostPct.toFixed(1)}% - ${primeStatusText}
+                        </span>
+                    </div>
+                    <div class="gauge-track">
+                        <!-- Threshold Markers at 60% and 68% -->
+                        <div class="gauge-threshold-marker" style="left: 60%;"></div>
+                        <div class="gauge-threshold-marker" style="left: 68%;"></div>
+                        <div class="gauge-fill ${primeStatusClass}" style="width: ${Math.min(primeCostPct, 100)}%;"></div>
+                    </div>
+                    <div class="gauge-footer">
+                        <span>An toàn < 60%</span>
+                        <span>Cảnh báo 60-68%</span>
+                        <span>Nguy cơ > 68%</span>
+                    </div>
+                </div>
+
+                <div style="background-color: var(--bg-primary); border-radius: 8px; padding: 10px 12px; margin-bottom: 16px;">
+                    <p style="font-size: 12px; line-height: 1.4; color: var(--text-secondary);">
+                        <strong style="color: var(--text-primary);">Đánh giá Giám đốc:</strong> ${primeStatusNotes}
+                    </p>
+                </div>
+
+                <!-- Secondary indicators (Food cost ratio & Labor cost ratio) -->
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 8px;">
+                    <!-- Food Cost ratio progress -->
+                    <div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; font-weight: 500;">
+                            <span>Tỷ lệ Giá vốn NVL (Mục tiêu: 28% - 35%)</span>
+                            <span style="font-weight: 600; color: ${foodCostPct >= 28 && foodCostPct <= 35 ? 'var(--ios-green)' : 'var(--ios-orange)'};">${foodCostPct.toFixed(1)}%</span>
+                        </div>
+                        <div class="gauge-track" style="height: 6px;">
+                            <div class="gauge-fill" style="width: ${Math.min(foodCostPct, 100)}%; background-color: ${foodCostPct >= 28 && foodCostPct <= 35 ? 'var(--ios-green)' : 'var(--ios-orange)'};"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Labor Cost ratio progress -->
+                    <div>
+                        <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; font-weight: 500;">
+                            <span>Tỷ lệ Chi phí Nhân sự (Mục tiêu: 25% - 30%)</span>
+                            <span style="font-weight: 600; color: ${laborCostPct >= 25 && laborCostPct <= 30 ? 'var(--ios-green)' : 'var(--ios-orange)'};">${laborCostPct.toFixed(1)}%</span>
+                        </div>
+                        <div class="gauge-track" style="height: 6px;">
+                            <div class="gauge-fill" style="width: ${Math.min(laborCostPct, 100)}%; background-color: ${laborCostPct >= 25 && laborCostPct <= 30 ? 'var(--ios-green)' : 'var(--ios-orange)'};"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Revenue Performance across 5 units -->
+            <div class="ios-card">
+                <h3 style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; color: var(--text-primary);">
+                    <i data-feather="bar-chart-2" style="color: var(--ios-red); width: 18px;"></i>
+                    Doanh thu so với Chỉ tiêu Đơn vị
+                </h3>
+                
+                <div class="financial-bars-container">
+                    ${DaLanStore.DEPARTMENTS.map(dept => {
+                        const actual = stats.unitRevenues[dept] || 0;
+                        const target = stats.unitTargets[dept] || 0;
+                        const expense = stats.unitExpenses[dept] || 0;
+                        
+                        if (target === 0) {
+                            // Non-revenue cost center (e.g. Văn phòng)
+                            return `
+                                <div class="finance-bar-row">
+                                    <div class="finance-bar-label">${dept}</div>
+                                    <div style="flex:1; font-size:11px; color:var(--text-secondary); font-style:italic; padding-left: 10px;">
+                                        Trung tâm Chi phí: ${this.formatVND(expense).replace('₫', 'đ')} (Lương & HĐ)
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        
+                        const achievedPercent = target > 0 ? Math.min((actual / target) * 100, 100) : 0;
+                        const displayPercent = target > 0 ? Math.round((actual / target) * 100) : 0;
+                        
+                        return `
+                            <div class="finance-bar-row">
+                                <div class="finance-bar-label">${dept}</div>
+                                <div class="finance-bar-track-wrapper">
+                                    <div class="finance-bar-fill" style="width: ${achievedPercent}%;"></div>
+                                </div>
+                                <div class="finance-bar-value">
+                                    ${this.formatVND(actual).replace('₫', 'đ')}
+                                    <div style="font-size:10px; color:var(--text-secondary); font-weight:400;">Đạt ${displayPercent}%</div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+
+            <!-- Transaction Ledger (Sổ quỹ thu chi) -->
+            <div class="ios-search-bar-container" style="position: sticky; top: -16px; background-color: var(--bg-primary); padding: 10px 0; margin-top: 4px; z-index: 10;">
+                <div class="ios-search-bar">
+                    <i data-feather="search"></i>
+                    <input type="text" id="transaction-search-input" placeholder="Tìm giao dịch, đơn vị, nội dung..." value="${searchQuery}">
+                    ${searchQuery ? `<button id="tx-search-clear-btn" style="background:none; border:none; color:var(--text-tertiary); cursor:pointer;"><i data-feather="x-circle" style="width:16px;"></i></button>` : ''}
+                </div>
+                
+                <!-- Income / Expense / All Filter -->
+                <div class="ios-segmented-control" id="tx-type-segment-control" style="margin-top: 10px; margin-bottom: 0;">
+                    <button class="segment-btn ${filterType === "Tất cả" ? "active" : ""}" data-val="Tất cả">Tất cả</button>
+                    <button class="segment-btn ${filterType === "Khoản Thu" ? "active" : ""}" data-val="Khoản Thu">Khoản Thu (+)</button>
+                    <button class="segment-btn ${filterType === "Khoản Chi" ? "active" : ""}" data-val="Khoản Chi">Khoản Chi (-)</button>
+                </div>
+            </div>
+
+            <div class="transaction-list" style="margin-bottom: 24px;">
+        `;
+
+        if (filteredTx.length === 0) {
+            html += `
+                <div style="text-align: center; padding: 40px 20px; color: var(--text-secondary); background-color: var(--bg-secondary); border-radius: 12px; border: 1px dashed var(--border-color); margin-top: 10px;">
+                    <i data-feather="dollar-sign" style="width: 36px; height: 36px; color: var(--text-tertiary); margin-bottom: 8px;"></i>
+                    <p style="font-weight: 500;">Không có giao dịch thu chi nào phù hợp</p>
+                </div>
+            `;
+        } else {
+            filteredTx.forEach(tx => {
+                const isIncome = tx.type === "income";
+                const amountFormatted = (isIncome ? '+' : '-') + this.formatVND(tx.amount).replace('₫', 'đ');
+                
+                // Beautiful icons based on category
+                let icon = "dollar-sign";
+                if (tx.category === "Giá vốn nguyên liệu") icon = "shopping-cart";
+                else if (tx.category === "Chi phí vận hành") icon = "settings";
+                else if (tx.category === "Doanh thu") icon = "trending-up";
+                
+                html += `
+                    <div class="transaction-card">
+                        <div class="transaction-icon-box ${tx.type}">
+                            <i data-feather="${icon}"></i>
+                        </div>
+                        <div class="transaction-info" onclick="App.openEditTransactionForm('${tx.id}')">
+                            <div class="transaction-title">${tx.title}</div>
+                            <div class="transaction-meta">
+                                <span style="font-weight:600; color:var(--text-primary);">${tx.department}</span> • ${this.formatDate(tx.date)}
+                                ${tx.notes ? `<div style="font-size:10px; color:var(--text-secondary); margin-top: 2px; font-style: italic;">${tx.notes}</div>` : ''}
+                            </div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <div class="transaction-amount ${tx.type}">${amountFormatted}</div>
+                            <button class="transaction-delete-btn" onclick="App.confirmDeleteTransaction('${tx.id}')">
+                                <i data-feather="trash-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        html += `
+            </div>
+            
+            <p style="text-align: center; color: var(--text-secondary); font-size: 11px; margin-top: 24px; padding: 0 16px; margin-bottom: 40px;">
+                * Quỹ lương nhân sự được cập nhật và liên kết tự động trực tiếp từ cơ sở dữ liệu Nhân sự để tính toán Labor Cost của doanh nghiệp.
+            </p>
+        `;
+
+        container.innerHTML = html;
+        feather.replace();
+        
+        // Register events for filters inside finance tab
+        App.bindFinanceEvents();
+    },
+
+    // ==========================================
+    // 8. RENDER TRANSACTION FORM (THÊM / SỬA GIAO DỊCH)
+    // ==========================================
+    renderTransactionForm(tx, container) {
+        const isEdit = tx !== null;
+        const defaultId = `TX-${Math.floor(100 + Math.random() * 900)}`;
+        
+        const data = isEdit ? tx : {
+            id: defaultId,
+            title: "",
+            amount: "",
+            type: "expense",
+            category: "Giá vốn nguyên liệu",
+            department: "Dạ Lan Center",
+            date: new Date().toISOString().substring(0, 10),
+            notes: ""
+        };
+
+        let html = `
+            <form id="transaction-detail-form" onsubmit="event.preventDefault();">
+                
+                <div class="form-section-title">Thông tin giao dịch sổ quỹ</div>
+                <div class="form-group-card">
+                    <!-- ID (Readonly) -->
+                    <div class="form-row">
+                        <label for="form-tx-id">Mã Giao dịch</label>
+                        <input type="text" id="form-tx-id" value="${data.id}" placeholder="VD: TX-123" readonly style="color:var(--text-secondary);">
+                    </div>
+                    <!-- Title -->
+                    <div class="form-row">
+                        <label for="form-tx-title">Tên khoản thu chi</label>
+                        <input type="text" id="form-tx-title" value="${data.title}" placeholder="Nhập tên hoặc nội dung giao dịch" required>
+                    </div>
+                    <!-- Amount -->
+                    <div class="form-row">
+                        <label for="form-tx-amount">Số tiền (đ)</label>
+                        <input type="number" id="form-tx-amount" value="${data.amount}" placeholder="Nhập số tiền VNĐ" required>
+                    </div>
+                    <!-- Date -->
+                    <div class="form-row">
+                        <label for="form-tx-date">Ngày giao dịch</label>
+                        <input type="date" id="form-tx-date" value="${data.date}" required>
+                    </div>
+                </div>
+
+                <div class="form-section-title">Phân loại & Đơn vị hạch toán</div>
+                <div class="form-group-card">
+                    <!-- Department -->
+                    <div class="form-row">
+                        <label for="form-tx-dept">Đơn vị hạch toán</label>
+                        <select id="form-tx-dept" required>
+                            ${DaLanStore.DEPARTMENTS.map(dept => `
+                                <option value="${dept}" ${data.department === dept ? 'selected' : ''}>${dept}</option>
+                            `).join('')}
+                        </select>
+                    </div>
+                    <!-- Type (Income / Expense) -->
+                    <div class="form-row">
+                        <label for="form-tx-type">Loại giao dịch</label>
+                        <select id="form-tx-type" required>
+                            <option value="expense" ${data.type === "expense" ? 'selected' : ''}>Khoản Chi (-)</option>
+                            <option value="income" ${data.type === "income" ? 'selected' : ''}>Khoản Thu (+)</option>
+                        </select>
+                    </div>
+                    <!-- Category -->
+                    <div class="form-row">
+                        <label for="form-tx-category">Hạng mục tài chính</label>
+                        <select id="form-tx-category" required>
+                            <option value="Giá vốn nguyên liệu" ${data.category === "Giá vốn nguyên liệu" ? 'selected' : ''}>Giá vốn nguyên liệu (F&B)</option>
+                            <option value="Chi phí vận hành" ${data.category === "Chi phí vận hành" ? 'selected' : ''}>Chi phí vận hành (OpEx)</option>
+                            <option value="Doanh thu" ${data.category === "Doanh thu" ? 'selected' : ''}>Doanh thu gộp</option>
+                            <option value="Khác" ${data.category === "Khác" ? 'selected' : ''}>Khác</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-section-title">Ghi chú & Chi tiết hóa đơn</div>
+                <div class="form-group-card">
+                    <!-- Notes -->
+                    <div class="form-row" style="align-items: flex-start; height: auto;">
+                        <label for="form-tx-notes" style="margin-top: 4px;">Ghi chú</label>
+                        <textarea id="form-tx-notes" rows="3" placeholder="Ghi chú chi tiết hóa đơn hoặc bên thứ ba..." style="resize:none; padding-top:4px;">${data.notes || ''}</textarea>
+                    </div>
+                </div>
+            </form>
+        `;
+
+        container.innerHTML = html;
+        feather.replace();
+
+        // Listen for type changes to auto-select appropriate category
+        const typeSelect = document.getElementById("form-tx-type");
+        const catSelect = document.getElementById("form-tx-category");
+        if (typeSelect && catSelect && !isEdit) {
+            typeSelect.addEventListener("change", function() {
+                if (this.value === "income") {
+                    catSelect.value = "Doanh thu";
+                } else {
+                    catSelect.value = "Giá vốn nguyên liệu";
+                }
+            });
+        }
     }
 };

@@ -327,6 +327,140 @@ const DaLanStore = {
         }
     ],
 
+    // Default Professional F&B Transactions for May 2026
+    MOCK_TRANSACTIONS: [
+        {
+            id: "TX-001",
+            title: "Doanh thu Tiệc cưới Trọn gói Khách hàng Nguyễn Văn A",
+            amount: 520000000,
+            type: "income",
+            category: "Doanh thu",
+            department: "Dạ Lan Center",
+            date: "2026-05-18",
+            notes: "Thanh toán đợt 2 và quyết toán tiệc cưới 400 khách."
+        },
+        {
+            id: "TX-002",
+            title: "Nhập thực phẩm tươi sống tuần 3 Center",
+            amount: 148000000,
+            type: "expense",
+            category: "Giá vốn nguyên liệu",
+            department: "Dạ Lan Center",
+            date: "2026-05-16",
+            notes: "Rau củ quả tươi, hải sản, thịt gia cầm phục vụ nhà hàng."
+        },
+        {
+            id: "TX-003",
+            title: "Doanh thu sự kiện Gala Dinner Công ty X",
+            amount: 350000000,
+            type: "income",
+            category: "Doanh thu",
+            department: "Dạ Lan Event",
+            date: "2026-05-15",
+            notes: "Sự kiện Gala tiệc tối trọn gói âm thanh ánh sáng sân khấu."
+        },
+        {
+            id: "TX-004",
+            title: "Chi phí setup sân khấu & hoa tươi trang trí",
+            amount: 98000000,
+            type: "expense",
+            category: "Giá vốn nguyên liệu",
+            department: "Dạ Lan Event",
+            date: "2026-05-14",
+            notes: "Thuê màn hình LED, thiết kế backdrop và hoa tươi trang trí tiệc."
+        },
+        {
+            id: "TX-005",
+            title: "Doanh thu lưu trú khách sạn & Cafe Star",
+            amount: 180000000,
+            type: "income",
+            category: "Doanh thu",
+            department: "Dạ Lan Star",
+            date: "2026-05-17",
+            notes: "Doanh số bill gộp phòng lưu trú và cafe tổ hợp Star."
+        },
+        {
+            id: "TX-006",
+            title: "Chi phí nguyên liệu pha chế & cafe Star",
+            amount: 45000000,
+            type: "expense",
+            category: "Giá vốn nguyên liệu",
+            department: "Dạ Lan Star",
+            date: "2026-05-12",
+            notes: "Nhập hạt cafe Arabica, Robusta, sữa đặc, siro và hoa quả tươi."
+        },
+        {
+            id: "TX-007",
+            title: "Doanh số xuất xưởng lô bánh kẹo bánh trung thu sớm",
+            amount: 410000000,
+            type: "income",
+            category: "Doanh thu",
+            department: "Nhà máy Dạ Lan",
+            date: "2026-05-19",
+            notes: "Thanh toán giao hàng đợt 1 cho nhà phân phối bánh kẹo miền Bắc."
+        },
+        {
+            id: "TX-008",
+            title: "Nhập bột mỳ, đường kính sản xuất bánh",
+            amount: 112000000,
+            type: "expense",
+            category: "Giá vốn nguyên liệu",
+            department: "Nhà máy Dạ Lan",
+            date: "2026-05-10",
+            notes: "Mua nguyên liệu thô đường, bột mỳ hoa ngọc lan kho bãi nhà máy."
+        },
+        {
+            id: "TX-009",
+            title: "Tiền điện 3 pha và nước vận hành nhà máy tháng 5",
+            amount: 32000000,
+            type: "expense",
+            category: "Chi phí vận hành",
+            department: "Nhà máy Dạ Lan",
+            date: "2026-05-15",
+            notes: "Hóa đơn điện lực và nước sạch sản xuất công nghiệp."
+        },
+        {
+            id: "TX-010",
+            title: "Chi phí marketing quảng cáo thương hiệu Dạ Lan",
+            amount: 20000000,
+            type: "expense",
+            category: "Chi phí vận hành",
+            department: "Văn phòng",
+            date: "2026-05-08",
+            notes: "Tài trợ quảng bá hình ảnh truyền thông và chạy quảng cáo online."
+        },
+        {
+            id: "TX-011",
+            title: "Chi phí viễn thông & văn phòng phẩm HQ",
+            amount: 15000000,
+            type: "expense",
+            category: "Chi phí vận hành",
+            department: "Văn phòng",
+            date: "2026-05-05",
+            notes: "Chi mua văn phòng phẩm và internet cáp quang tổng công ty."
+        },
+        {
+            id: "TX-012",
+            title: "Doanh thu ẩm thực & Cafe lẻ tuần 3 Center",
+            amount: 85000000,
+            type: "income",
+            category: "Doanh thu",
+            department: "Dạ Lan Center",
+            date: "2026-05-19",
+            notes: "Doanh số bán lẻ tại quầy Center và nhà hàng."
+        },
+        {
+            id: "TX-013",
+            title: "Nhập bia, nước ngọt tháng 5 Center",
+            amount: 25000000,
+            type: "expense",
+            category: "Giá vốn nguyên liệu",
+            department: "Dạ Lan Center",
+            date: "2026-05-06",
+            notes: "Chi phí nhập đồ uống đóng chai nước ngọt ngọt có ga các loại."
+        }
+    ],
+
     // --- Core Store Functions ---
     init() {
         const stored = localStorage.getItem("dalan_employees");
@@ -345,11 +479,20 @@ const DaLanStore = {
                 }
             } catch(e) {}
         }
+
+        const storedTx = localStorage.getItem("dalan_transactions");
+        if (!storedTx) {
+            this.resetTransactionsToMockData();
+        }
     },
 
     getEmployees() {
-        this.init();
-        return JSON.parse(localStorage.getItem("dalan_employees"));
+        const stored = localStorage.getItem("dalan_employees");
+        if (!stored) {
+            this.resetToMockData();
+            return this.MOCK_EMPLOYEES;
+        }
+        return JSON.parse(stored);
     },
 
     saveEmployees(employees) {
@@ -386,6 +529,52 @@ const DaLanStore = {
 
     resetToMockData() {
         this.saveEmployees(this.MOCK_EMPLOYEES);
+    },
+
+    // --- Transactions Store Functions ---
+    getTransactions() {
+        const stored = localStorage.getItem("dalan_transactions");
+        if (!stored) {
+            this.resetTransactionsToMockData();
+            return this.MOCK_TRANSACTIONS;
+        }
+        return JSON.parse(stored);
+    },
+
+    saveTransactions(transactions) {
+        localStorage.setItem("dalan_transactions", JSON.stringify(transactions));
+    },
+
+    addTransaction(tx) {
+        const transactions = this.getTransactions();
+        transactions.unshift(tx); // Add new transactions to the beginning
+        this.saveTransactions(transactions);
+        return true;
+    },
+
+    deleteTransaction(id) {
+        const transactions = this.getTransactions();
+        const filtered = transactions.filter(t => t.id !== id);
+        if (filtered.length !== transactions.length) {
+            this.saveTransactions(filtered);
+            return true;
+        }
+        return false;
+    },
+
+    updateTransaction(id, updatedTx) {
+        const transactions = this.getTransactions();
+        const index = transactions.findIndex(t => t.id === id);
+        if (index !== -1) {
+            transactions[index] = { ...transactions[index], ...updatedTx };
+            this.saveTransactions(transactions);
+            return true;
+        }
+        return false;
+    },
+
+    resetTransactionsToMockData() {
+        this.saveTransactions(this.MOCK_TRANSACTIONS);
     },
 
     // --- Utility: Generate Gradient Initials Avatar ---
@@ -453,16 +642,117 @@ const DaLanStore = {
         };
     },
 
+    // --- Dynamic F&B Financial Stats ---
+    getFinancialStats() {
+        const transactions = this.getTransactions();
+        const stats = this.getStats();
+        
+        const laborCost = stats.totalSalary; // Dynamic labor cost from HR
+        let totalRevenue = 0;
+        let foodCost = 0;
+        let opEx = 0;
+        
+        transactions.forEach(tx => {
+            const amt = Number(tx.amount) || 0;
+            if (tx.type === "income") {
+                totalRevenue += amt;
+            } else if (tx.type === "expense") {
+                if (tx.category === "Giá vốn nguyên liệu") {
+                    foodCost += amt;
+                } else {
+                    opEx += amt; // Operational costs (OpEx)
+                }
+            }
+        });
+        
+        const totalExpenses = foodCost + laborCost + opEx;
+        const netProfit = totalRevenue - totalExpenses;
+        
+        // Ratios (Avoid division by zero)
+        const revForRatio = totalRevenue > 0 ? totalRevenue : 1;
+        const primeCost = foodCost + laborCost;
+        const primeCostPercent = (primeCost / revForRatio) * 100;
+        const laborCostPercent = (laborCost / revForRatio) * 100;
+        const foodCostPercent = (foodCost / revForRatio) * 100;
+        
+        // Target revenues for May 2026 (5 units)
+        const unitTargets = {
+            "Dạ Lan Center": 700000000,
+            "Dạ Lan Star": 250000000,
+            "Dạ Lan Event": 450000000,
+            "Nhà máy Dạ Lan": 500000000,
+            "Văn phòng": 0
+        };
+        
+        const unitRevenues = {};
+        const unitExpenses = {};
+        this.DEPARTMENTS.forEach(dept => {
+            unitRevenues[dept] = 0;
+            unitExpenses[dept] = 0;
+        });
+        
+        // Add dynamic labor cost per department to the unit expenses!
+        const employees = this.getEmployees();
+        employees.forEach(e => {
+            if (unitExpenses[e.department] !== undefined) {
+                unitExpenses[e.department] += (Number(e.salary) || 0);
+            }
+        });
+        
+        transactions.forEach(tx => {
+            const amt = Number(tx.amount) || 0;
+            if (tx.type === "income") {
+                if (unitRevenues[tx.department] !== undefined) {
+                    unitRevenues[tx.department] += amt;
+                }
+            } else if (tx.type === "expense") {
+                if (unitExpenses[tx.department] !== undefined) {
+                    unitExpenses[tx.department] += amt;
+                }
+            }
+        });
+        
+        return {
+            totalRevenue,
+            foodCost,
+            laborCost,
+            opEx,
+            totalExpenses,
+            netProfit,
+            primeCostPercent,
+            laborCostPercent,
+            foodCostPercent,
+            unitTargets,
+            unitRevenues,
+            unitExpenses
+        };
+    },
+
     // --- Import / Export Backup ---
     exportData() {
-        const dataStr = JSON.stringify(this.getEmployees(), null, 2);
+        const backup = {
+            employees: this.getEmployees(),
+            transactions: this.getTransactions()
+        };
+        const dataStr = JSON.stringify(backup, null, 2);
         return "data:text/json;charset=utf-8," + encodeURIComponent(dataStr);
+    },
+
+    exportBackupData() {
+        return this.exportData();
     },
 
     importData(jsonString) {
         try {
             const parsed = JSON.parse(jsonString);
-            if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].id) {
+            if (parsed && parsed.employees && Array.isArray(parsed.employees)) {
+                this.saveEmployees(parsed.employees);
+                if (parsed.transactions && Array.isArray(parsed.transactions)) {
+                    this.saveTransactions(parsed.transactions);
+                }
+                return { success: true, count: parsed.employees.length };
+            } else if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].id) {
+                // Fallback for legacy backups (employee-only array)
                 this.saveEmployees(parsed);
                 return { success: true, count: parsed.length };
             }
