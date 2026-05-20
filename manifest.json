@@ -1,0 +1,20 @@
+{
+  "name": "Quản lý Nhân sự Dạ Lan",
+  "short_name": "NS Dạ Lan",
+  "description": "Hệ thống quản lý nhân sự Công ty cổ phần Dạ Lan",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#FFFFFF",
+  "theme_color": "#D32F2F",
+  "status_bar": "black-translucent",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='120' fill='%23D32F2F'/><path d='M256 90c-15 0-45 40-45 90 0 35 15 50 45 50s45-15 45-50c0-50-30-90-45-90zm-90 190c0-30 25-50 90-50s90 20 90 50c0 40-20 92-90 92s-90-52-90-92z' fill='%23FFFFFF'/><circle cx='256' cy='180' r='20' fill='%23D32F2F'/><path d='M160 380h192v25H160zM120 420h272v15H120z' fill='%23FFFFFF'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

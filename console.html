@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dạ Lan Server Console - Kết nối iPhone</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.1/feather.min.js"></script>
+    <style>
+        :root {
+            --ios-red: #D32F2F;
+            --bg-dark: #0f0f12;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --text-light: #ffffff;
+            --text-muted: #a0a0ab;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .background-glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(211, 47, 47, 0.15) 0%, rgba(0,0,0,0) 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .console-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 800px;
+            background: rgba(20, 20, 25, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 40px;
+        }
+
+        @media (max-width: 680px) {
+            .console-container {
+                grid-template-columns: 1fr;
+                padding: 24px;
+                gap: 24px;
+            }
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .brand-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .brand-logo {
+            width: 44px;
+            height: 44px;
+            background: var(--ios-red);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 4px 12px rgba(211, 47, 47, 0.4);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .brand-subtitle {
+            font-size: 12px;
+            color: var(--ios-red);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 2px;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            line-height: 1.2;
+            margin-bottom: 16px;
+        }
+
+        p.description {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .step-item {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .step-num {
+            width: 24px;
+            height: 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            color: var(--ios-red);
+            font-weight: 700;
+            font-size: 12px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .step-text {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-muted);
+        }
+
+        .step-text strong {
+            color: var(--text-light);
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px dashed var(--card-border);
+            border-radius: 18px;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .qr-card {
+            background: white;
+            padding: 16px;
+            border-radius: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+
+        .qr-card:hover {
+            transform: scale(1.03);
+        }
+
+        .qr-code-img {
+            width: 200px;
+            height: 200px;
+            display: block;
+        }
+
+        .url-box {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            color: var(--ios-red);
+            font-weight: 600;
+            word-break: break-all;
+            margin-bottom: 12px;
+        }
+
+        .badge-online {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            background: rgba(52, 199, 89, 0.1);
+            color: #34C759;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .dot-pulse {
+            width: 8px;
+            height: 8px;
+            background: #34C759;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-glow"></div>
+    <div class="console-container">
+        <!-- Left Side Column -->
+        <div class="left-column">
+            <div class="brand-header">
+                <div class="brand-logo">DL</div>
+                <div>
+                    <div class="brand-title">Dạ Lan</div>
+                    <div class="brand-subtitle">Hệ thống Nhân sự</div>
+                </div>
+            </div>
+            <h1>Cài đặt ứng dụng trên iPhone của bạn</h1>
+            <p class="description">
+                Để khởi chạy ứng dụng Quản lý Nhân sự Dạ Lan toàn màn hình trên iOS, vui lòng làm theo hướng dẫn 4 bước bên dưới.
+            </p>
+            <div class="steps-list">
+                <div class="step-item">
+                    <div class="step-num">1</div>
+                    <div class="step-text">
+                        Đảm bảo <strong>iPhone</strong> và <strong>máy tính này</strong> đang kết nối chung một mạng <strong>WiFi</strong> trong văn phòng hoặc gia đình.
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">2</div>
+                    <div class="step-text">
+                        Bật ứng dụng <strong>Camera mặc định</strong> trên iPhone của bạn và hướng ống kính vào <strong>mã QR</strong> bên cạnh.
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">3</div>
+                    <div class="step-text">
+                        Chạm vào liên kết Safari màu vàng hiện ra trên iPhone để mở ứng dụng <strong>Nhân sự Dạ Lan</strong>.
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">4</div>
+                    <div class="step-text">
+                        Trên trình duyệt Safari của iPhone, nhấn nút <strong>Chia sẻ (Share)</strong> ở thanh dưới cùng -> Chọn <strong>"Thêm vào MH chính" (Add to Home Screen)</strong>. Hoàn tất!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side QR Column -->
+        <div class="right-column">
+            <div class="qr-card">
+                <!-- QR Code points dynamically to current network address -->
+                <img id="qr-image" class="qr-code-img" src="" alt="Mã QR kết nối">
+            </div>
+            <div class="url-box" id="url-text">Đang tải...</div>
+            <div class="badge-online">
+                <span class="dot-pulse"></span>
+                <span>Server hoạt động</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Extract local IP from Python server injected script or detect via hostname
+        document.addEventListener("DOMContentLoaded", function() {
+            // Get current machine host (could be localhost:8000 or IP address)
+            let host = window.location.host;
+            let protocol = window.location.protocol;
+            
+            // Fetch local IP address injected by start_server.py or fall back to current host
+            let localIp = "{{LOCAL_IP}}"; // Will be replaced by Python
+            if (localIp === "{" + "{LOCAL_IP}}") { 
+                // Fallback if accessed directly
+                localIp = window.location.hostname;
+            }
+            
+            let port = window.location.port || "8000";
+            let appUrl = `http://${localIp}:${port}/index.html`;
+            
+            // Set URL Text
+            document.getElementById("url-text").textContent = appUrl;
+            
+            // Set QR code src using free highly-available QR API
+            const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(appUrl)}`;
+            document.getElementById("qr-image").src = qrApi;
+            
+            feather.replace();
+        });
+    </script>
+</body>
+</html>
