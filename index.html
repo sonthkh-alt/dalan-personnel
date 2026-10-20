@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Dạ Lan - Nhân sự & Tài chính</title>
+    <title>Dạ Lan Suite - Vận hành, Nhân sự & Tài chính</title>
     
     <!-- iOS PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="NS Dạ Lan">
+    <meta name="apple-mobile-web-app-title" content="Dạ Lan">
     
     <!-- Apple Touch Icon (Premium Custom SVG Icon) -->
     <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='120' fill='%23D32F2F'/><path d='M256 90c-15 0-45 40-45 90 0 35 15 50 45 50s45-15 45-50c0-50-30-90-45-90zm-90 190c0-30 25-50 90-50s90 20 90 50c0 40-20 92-90 92s-90-52-90-92z' fill='%23FFFFFF'/><circle cx='256' cy='180' r='20' fill='%23D32F2F'/><path d='M160 380h192v25H160zM120 420h272v15H120z' fill='%23FFFFFF'/></svg>">
@@ -25,8 +25,14 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/modules.css">
     
-    <!-- Feather Icons for Beautiful iOS UI Elements -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/feather-icons/4.29.1/feather.min.js"></script>
+    <!-- Feather Icons (đóng gói cục bộ — không phụ thuộc CDN, chạy được khi offline / mạng LAN) -->
+    <script src="js/vendor/feather.min.js"></script>
+    <script>
+        // Shim an toàn: nếu thư viện icon không tải được, app vẫn chạy (chỉ thiếu icon).
+        if (typeof window.feather === "undefined") {
+            window.feather = { icons: {}, replace: function () {}, toSvg: function () { return ""; } };
+        }
+    </script>
 </head>
 <body>
     <!-- App Shell Container -->
@@ -159,5 +165,16 @@
     <script src="js/modules.js"></script>
     <script src="js/app.js"></script>
     <script src="js/app-ext.js"></script>
+
+    <!-- Service Worker: cache app shell để PWA mở được khi offline / mất kết nối server -->
+    <script>
+        if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+            window.addEventListener("load", function () {
+                navigator.serviceWorker.register("sw.js").catch(function (err) {
+                    console.warn("[Dạ Lan] Không đăng ký được Service Worker:", err);
+                });
+            });
+        }
+    </script>
 </body>
 </html>
